@@ -1,0 +1,84 @@
+#SplitConfig {
+  width: 100%;
+  flow-children: right;
+  height: 100%;
+}
+
+#SplitConfig .LeftSide, #SplitConfig .RightSide {
+  height: 100%;
+  width: fill-parent-flow(1.0);
+  flow-children: down;
+}
+#SplitConfig .CenterHolder {
+  width: 100px;
+  height: 100%;
+}
+
+#SplitConfig .CenterLine {
+  width: 2px;
+  height: 50%;
+  horizontal-align: center;
+  background-color: gradient( linear, 0% 0%, 0% 100%, from( #404D65dd ), to( #2B344500 ) );
+}
+
+#SplitConfig .VSLine {
+  margin-top: 30%;
+  horizontal-align: center;
+  text-align: center;
+  padding: 5px 20px;
+  font-size: 26px;
+  background-color: gradient( linear, 0% 0%, 0% 100%, from( #404D65ff ), to( #252525ff ) );
+}
+
+#SplitConfig .HeroPreview {
+  height: 600px;
+  width: 100%;
+}
+
+#SplitConfig .HeroPreview DOTAScenePanel {
+  height: 600px;
+  width: 100%;
+}
+
+#SplitConfig #RightHeroPanel.active {
+  background-color: gradient( linear, 0% 0%, 0% 90%, from( #ff000020 ), to( #171A2500 ) );
+}
+
+#SplitConfig #LeftHeroPanel.active {
+  background-color: gradient( linear, 0% 0%, 0% 90%, from( #0090ff20 ), to( #171A2500 ) );
+}
+
+#SplitConfig .HeroName {
+  color: white;
+  font-size: 48px;
+  text-align: center;
+  width: 100%;
+  margin-top: 20px;
+}
+
+#SplitConfig .LevelSelector {
+  horizontal-align: center;
+  margin-top: 50%;
+  flow-children: down;
+}
+
+#SplitConfig .LevelUp, #SplitConfig .LevelDown {
+  width: 60px;
+  height: 25px;
+  horizontal-align: center;
+  background-color: gradient( linear, 0% 0%, 0% 100%, from( #404D65ff ), to( #252525ff ) );
+}
+
+#SplitConfig .LevelUp Label, #SplitConfig .LevelDown Label {
+  width: 100%;
+  text-align: center;
+  color: white;
+}
+
+#LevelDisplay {
+  color: red;
+  width: 100%;
+  text-align: center;
+  horizontal-align: center;
+  font-size: 48px;
+}

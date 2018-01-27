@@ -1,0 +1,15 @@
+<root>
+  <styles>
+    <include src="file://{resources}/styles/custom_game/shop.css" />
+  </styles>
+  <scripts>
+    <include src="file://{resources}/scripts/util.js" />
+    <include src="file://{resources}/scripts/custom_game/event.js" />
+    <include src="file://{resources}/scripts/custom_game/common.js" />
+    <include src="file://{resources}/scripts/custom_game/shop.js" />
+  </scripts>
+  <Panel class="ShopOptions">
+    <Label id="DoneShopping" text="Done Shopping" onactivate="DoneShopping()" />
+    <Label id="StartOver" text="Start Over" onactivate="ResetSettings()" />
+  </Panel>
+</root>

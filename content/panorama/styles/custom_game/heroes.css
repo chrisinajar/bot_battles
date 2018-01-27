@@ -1,0 +1,94 @@
+
+#HeroPanel {
+  transform: translateY(0%);
+  transition-property: transform;
+  transition-duration: 1s;
+  width: 100%;
+  flow-children: right;
+  height: 436px;
+}
+#HeroPanel.hidden {
+  transform: translateY(-100%);
+}
+
+#StrHolder {
+  background-image: url("s2r://panorama/images/primary_attribute_icons/primary_attribute_icon_strength_psd.vtex");
+  background-repeat: no-repeat;
+  background-size: contain;
+
+  width: height-percentage( 100% );
+  margin-right: 10px;
+}
+
+#AgiHolder {
+  background-image: url("s2r://panorama/images/primary_attribute_icons/primary_attribute_icon_agility_psd.vtex");
+  background-repeat: no-repeat;
+  background-size: contain;
+
+  width: height-percentage( 100% );
+  margin-right: 10px;
+}
+
+#IntHolder {
+  background-image: url("s2r://panorama/images/primary_attribute_icons/primary_attribute_icon_intelligence_psd.vtex");
+  background-repeat: no-repeat;
+  background-size: contain;
+
+  width: height-percentage( 100% );
+  margin-right: 10px;
+}
+
+.HeroHolder {
+  margin: 0 0 10px 0;
+  width: 100%;
+  flow-children: right-wrap;
+}
+
+.HeroWrapper {
+  flow-children: down;
+  width: 33.3%;
+}
+
+.AttrHolder {
+  /*width: 100%;*/
+  flow-children: right;
+}
+
+RadioButton {
+  margin: 3px;
+  width: 80px;
+  height: 45px;
+  box-shadow: #000000ff -2px -2px 4px 4px;
+}
+
+RadioButton:hover {
+  box-shadow: #999999ff -2px -2px 4px 4px;
+}
+
+RadioButton:selected {
+  box-shadow: #ffffffff -2px -2px 4px 4px;
+}
+
+RadioButton.Disabled {
+  brightness: 0.05;
+}
+
+RadioButton.Disabled:hover {
+  box-shadow: none;
+}
+
+RadioButton.Disabled:selected {
+  box-shadow: none;
+}
+
+.HeroCard {
+  height: 100%;
+  width: 100%;
+}
+
+#HeroSelector {
+  width: 40%;
+  height: fill-parent-flow(1.0);
+  flow-children: right;
+  horizontal-align: middle;
+}

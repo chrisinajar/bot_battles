@@ -1,0 +1,77 @@
+<root>
+  <styles>
+    <include src="file://{resources}/styles/custom_game/configure.css" />
+    <include src="file://{resources}/styles/custom_game/heroes.css" />
+    <include src="file://{resources}/styles/custom_game/splitconfig.css" />
+    <include src="file://{resources}/styles/custom_game/start.css" />
+  </styles>
+  <scripts>
+    <include src="file://{resources}/scripts/util.js" />
+    <include src="file://{resources}/scripts/custom_game/event.js" />
+    <include src="file://{resources}/scripts/custom_game/configure.js" />
+    <include src="file://{resources}/scripts/custom_game/heroes.js" />
+    <include src="file://{resources}/scripts/custom_game/splitconfig.js" />
+    <include src="file://{resources}/scripts/custom_game/level.js" />
+  </scripts>
+  <script>
+    init();
+  </script>
+  <Panel class="Configure">
+    <!-- SPLIT CONFIG -->
+    <Panel id="SplitConfig">
+      <Panel class="LeftSide SplitSide">
+        <Label id="LeftHeroName" class="HeroName" />
+        <Panel id="LeftHeroPanel" class="HeroPreview">
+        </Panel>
+      </Panel>
+      <Panel class="CenterHolder">
+        <Panel class="CenterLine">
+        </Panel>
+        <Label class="VSLine" text="VS" />
+        <Panel class="LevelSelector">
+          <Panel class="LevelUp" onactivate="LevelUp()">
+            <Label class="LevelIndicator" text="^" />
+          </Panel>
+          <Label id="LevelDisplay" text="..." />
+          <Panel class="LevelDown" onactivate="LevelDown()">
+            <Label class="LevelIndicator" text="V" />
+          </Panel>
+        </Panel>
+      </Panel>
+      <Panel class="RightSide SplitSide">
+        <Label id="RightHeroName" class="HeroName" />
+        <Panel id="RightHeroPanel" class="HeroPreview">
+        </Panel>
+      </Panel>
+    </Panel>
+    <!-- END SPLIT CONFIG -->
+    <!-- HERO PANEL -->
+    <Panel id="StartButton" onactivate="StartGame()">
+      <Label text="START" />
+    </Panel>
+    <Panel id="HeroPanel" class="hidden">
+      <Panel class="HeroWrapper">
+        <Panel class="AttrHolder">
+          <Panel id="StrHolder"/>
+          <Label id="ChooseStrLabel" text="#DOTA_Hero_Selection_STR"/>
+        </Panel>
+        <Panel class="HeroHolder" id="StrengthHeroes" />
+      </Panel>
+      <Panel class="HeroWrapper">
+        <Panel class="AttrHolder">
+          <Panel id="AgiHolder"/>
+          <Label id="ChooseAgiLabel" text="#DOTA_Hero_Selection_AGI"/>
+        </Panel>
+        <Panel class="HeroHolder" id="AgilityHeroes"/>
+      </Panel>
+      <Panel class="HeroWrapper">
+        <Panel class="AttrHolder">
+          <Panel id="IntHolder"/>
+          <Label id="ChooseIntLabel" text="#DOTA_Hero_Selection_INT"/>
+        </Panel>
+        <Panel class="HeroHolder" id="IntelligenceHeroes"/>
+      </Panel>
+    </Panel>
+    <!-- END HERO PANEL -->
+  </Panel>
+</root>

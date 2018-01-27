@@ -30,6 +30,9 @@ function GameMode:_InitGameMode()
   GameRules:SetCustomVictoryMessageDuration( VICTORY_MESSAGE_DURATION )
   GameRules:SetStartingGold( STARTING_GOLD )
 
+  PlayerResource:SetCustomTeamAssignment(0, DOTA_TEAM_CUSTOM_1)
+  PlayerResource:SetCustomTeamAssignment(1, DOTA_TEAM_CUSTOM_1)
+
   if SKIP_TEAM_SETUP then
     GameRules:SetCustomGameSetupAutoLaunchDelay( 0 )
     GameRules:LockCustomGameSetupTeamAssignment( true )

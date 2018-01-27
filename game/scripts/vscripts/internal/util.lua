@@ -74,6 +74,11 @@ function GetCallingFile (offset)
   end
 end
 
+function Debug:EnableDebugging()
+  local trace, dir = GetCallingFile()
+  Debug.EnabledModules[trace[#trace]] = true
+end
+
 function DebugPrint(...)
   local spew = Convars:GetInt('barebones_spew') or -1
   if spew == -1 and BAREBONES_DEBUG_SPEW then

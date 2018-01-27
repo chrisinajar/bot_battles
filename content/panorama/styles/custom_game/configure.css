@@ -1,0 +1,17 @@
+.Configure {
+  height: 100%;
+  width: 100%;
+  background-color: #252525;
+  transition-property: opacity, transform, blur;
+  /*transition-delay: 3s;*/
+  transition-timing-function: ease-in;
+  transition-duration: 0.5s;
+  transform: scaleX(1) scaleY(1) translateY(0);
+  flow-children: none;
+}
+
+.Configure.hidden {
+  opacity: 0;
+  transform: scaleX(2) scaleY(2) translateY(-100%);
+  blur: gaussian(10);
+}

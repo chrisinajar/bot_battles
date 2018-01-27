@@ -110,11 +110,6 @@ end
 ]]
 function GameMode:OnAllPlayersLoaded()
   DebugPrint("[BAREBONES] All Players have loaded into the game")
-
-  -- i wish this was observer pattern :/
-  if GameLengthVotes ~= nil then
-    GameLengthVotes:SetGameLength()
-  end
 end
 
 --[[
@@ -139,6 +134,9 @@ function GameMode:OnHeroInGame(hero)
   local abil = hero:GetAbilityByIndex(1)
   hero:RemoveAbility(abil:GetAbilityName())
   hero:AddAbility("example_ability")]]
+
+  hero:Kill(nil, hero)
+
 end
 
 function GameMode:OnStrategyTime()
@@ -150,20 +148,11 @@ function GameMode:OnPreGame()
   -- initialize modules
   InitModule(PointsManager)
   InitModule(Gold)
-  InitModule(BlinkBlock)
-  InitModule(ZoneControl)
-  InitModule(AbilityLevels)
-  InitModule(HeroProgression)
   InitModule(SellBlackList)
   InitModule(Glyph)
-  InitModule(BubbleOrbFilter)
-  InitModule(ReactiveFilter)
-  InitModule(NGP)
-  InitModule(Doors)
-  InitModule(HeroKillGold)
   InitModule(EntityStatProvider)
-  InitModule(ProtectionAura)
-  InitModule(Music)
+  InitModule(Heroes)
+  InitModule(HudTimer)
 
   CheckCheatMode()
 end
@@ -177,15 +166,6 @@ function GameMode:OnGameInProgress()
   DebugPrint("[BAREBONES] The game has officially begun")
 
   -- initialize modules
-  InitModule(CreepPower)
-  InitModule(CreepCamps)
-  InitModule(CreepItemDrop)
-  InitModule(CaveHandler)
-  InitModule(Duels)
-  InitModule(BossSpawner)
-  InitModule(BottleCounter)
-  InitModule(DuelRunes)
-  InitModule(FinalDuel)
   InitModule(PlayerConnection)
 
 end
@@ -216,6 +196,8 @@ function GameMode:InitGameMode()
   InitModule(HeroSelection)
   InitModule(ChatCommand)
   InitModule(DevCheats)
+  InitModule(ItemSelection)
+  InitModule(BotController)
 
   -- Commands can be registered for debugging purposes or as functions that can be called by the custom Scaleform UI
   -- Convars:RegisterCommand( "command_example", Dynamic_Wrap(GameMode, 'ExampleConsoleCommand'), "A console command example", FCVAR_CHEAT )

@@ -3,4 +3,5 @@
 require('components/filters/index')
 require('components/zonecontrol/index')
 -- require('components/courier/index')
-require('components/music/index')
+-- require('components/music/index')
+require('components/settings/index')

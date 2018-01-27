@@ -1,0 +1,15 @@
+.ShopOptions {
+  background-color: gradient( linear, 0% 0%, 0% 100%, from( #404D65ff ), to( #252525ee ) );
+  horizontal-align: center;
+  margin-top: 40px;
+  flow-children: down;
+  padding: 0px 20px 10px;
+}
+
+.ShopOptions Label {
+  color: white;
+  border: 1px solid black;
+  padding: 2px 10px;
+  margin-top: 5px;
+  horizontal-align: center;
+}

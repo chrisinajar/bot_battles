@@ -3,6 +3,8 @@
   custom_net_tables =
   [
     "info",
-    "music"
+    "music",
+    "timer",
+    "hero_selection"
   ]
 }

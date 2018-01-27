@@ -1,0 +1,12 @@
+
+#StartButton {
+  margin-top: 80%;
+  horizontal-align: center;
+}
+
+#StartButton Label {
+  font-size: 56px;
+  color: white;
+  padding: 20px 100px;
+  background-color: gradient( linear, 0% 0%, 0% 100%, from( #404D65ff ), to( #252525ff ) );
+}

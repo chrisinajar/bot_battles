@@ -17,6 +17,7 @@ require('internal/eventwrapper')
 
 require('internal/util')
 require('gamemode')
+require('precache')
 -- DotaStats
 require("statcollection/init")
 
@@ -33,36 +34,42 @@ function Precache( context )
 
   DebugPrint("[BAREBONES] Performing pre-load precache")
 
-  -- Ambient Sounds
-  PrecacheResource("soundfile", "soundevents/ambient/doors.vsndevts", context)
-  PrecacheResource("soundfile", "soundevents/music/music.vsndevts", context)
+  for _,Item in pairs( g_ItemPrecache ) do
+    PrecacheItemByNameSync( Item, context )
+  end
 
-  -- Particles can be precached individually or by folder
-  -- It it likely that precaching a single particle system will precache all of its children, but this may not be guaranteed
-  --PrecacheResource("particle", "particles/econ/generic/generic_aoe_explosion_sphere_1/generic_aoe_explosion_sphere_1.vpcf", context)
-  --PrecacheResource("particle_folder", "particles/test_particle", context)
+   for _,Unit in pairs( g_UnitPrecache ) do
+    PrecacheUnitByNameAsync( Unit, function( unit ) end )
+  end
 
-  -- Models can also be precached by folder or individually
-  -- PrecacheModel should generally used over PrecacheResource for individual models
-  --PrecacheResource("model_folder", "particles/heroes/antimage", context)
-  --PrecacheResource("model", "particles/heroes/viper/viper.vmdl", context)
-  --PrecacheModel("models/heroes/viper/viper.vmdl", context)
-  --PrecacheModel("models/props_gameplay/treasure_chest001.vmdl", context)
-  --PrecacheModel("models/props_debris/merchant_debris_chest001.vmdl", context)
-  --PrecacheModel("models/props_debris/merchant_debris_chest002.vmdl", context)
+   for _,Model in pairs( g_ModelPrecache ) do
+    PrecacheResource( "model", Model, context  )
+  end
 
-  -- Sounds can precached here like anything else
-  --PrecacheResource("soundfile", "soundevents/game_sounds_heroes/game_sounds_gyrocopter.vsndevts", context)
+  for _,Particle in pairs( g_ParticlePrecache ) do
+    PrecacheResource( "particle", Particle, context  )
+  end
 
-  -- Entire items can be precached by name
-  -- Abilities can also be precached in this way despite the name
-  --PrecacheItemByNameSync("example_ability", context)
-  --PrecacheItemByNameSync("item_example_item", context)
+  for _,ParticleFolder in pairs( g_ParticleFolderPrecache ) do
+    PrecacheResource( "particle_folder", ParticleFolder, context )
+  end
 
-  -- Entire heroes (sound effects/voice/models/particles) can be precached with PrecacheUnitByNameSync
-  -- Custom units from npc_units_custom.txt can also have all of their abilities and precache{} blocks precached in this way
-  --PrecacheUnitByNameSync("npc_dota_hero_ancient_apparition", context)
-  --PrecacheUnitByNameSync("npc_dota_hero_enigma", context)
+  for _,Sound in pairs( g_SoundPrecache ) do
+    PrecacheResource( "soundfile", Sound, context )
+  end
+
+  -- precache all hero econ folders
+  -- this makes immortals and stuff work
+  local allheroes = LoadKeyValues('scripts/npc/npc_heroes.txt')
+  for key,value in pairs(LoadKeyValues('scripts/npc/herolist.txt')) do
+    if value == 1 then
+      local hero = string.sub(key, 15)
+      print('Precaching ' .. hero)
+      -- PrecacheResource("particle_folder", "particles/econ/items/" .. hero, context)
+      PrecacheResource("model_folder", "particles/heroes/" .. hero, context)
+    end
+  end
+
 end
 
 -- Create the game mode when we activate

@@ -84,7 +84,7 @@ function ItemSelection:EnableHero (heroName)
 
     for i = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_6 do
       local item = hero:GetItemInSlot(i)
-      if item  then
+      if item and not item:IsNull() then
         hero:RemoveItem(item)
       end
     end

@@ -53,9 +53,10 @@ function BotController:InitBot (hero, team)
   hero:RespawnHero(false, false)
   ItemSelection:LevelUpHero(hero)
   BotController:Teleport(hero, team)
+
   for i = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_6 do
     local item = hero:GetItemInSlot(i)
-    if item  then
+    if item and not item:IsNull() then
       hero:RemoveItem(item)
     end
   end

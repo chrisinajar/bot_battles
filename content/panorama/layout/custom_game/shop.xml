@@ -8,7 +8,7 @@
     <include src="file://{resources}/scripts/custom_game/common.js" />
     <include src="file://{resources}/scripts/custom_game/shop.js" />
   </scripts>
-  <Panel class="ShopOptions">
+  <Panel class="ShopOptions hidden">
     <Label id="DoneShopping" text="Done Shopping" onactivate="DoneShopping()" />
     <Label id="StartOver" text="Start Over" onactivate="ResetSettings()" />
   </Panel>

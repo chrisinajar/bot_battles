@@ -136,6 +136,12 @@ function GameMode:OnHeroInGame(hero)
   hero:AddAbility("example_ability")]]
 
   hero:Kill(nil, hero)
+  for i = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_6 do
+    local item = hero:GetItemInSlot(i)
+    if item  then
+      hero:RemoveItem(item)
+    end
+  end
 
 end
 

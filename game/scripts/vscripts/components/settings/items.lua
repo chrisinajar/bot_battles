@@ -81,6 +81,14 @@ function ItemSelection:EnableHero (heroName)
     hero:RespawnHero(false, false)
     PlayerResource:ModifyGold(self.selection.playerID, 99999, true, DOTA_ModifyGold_RoshanKill)
     self:LevelUpHero(hero)
+
+    for i = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_6 do
+      local item = hero:GetItemInSlot(i)
+      if item  then
+        hero:RemoveItem(item)
+      end
+    end
+
     BotController:Teleport(hero, 'radiant')
   end)
 end

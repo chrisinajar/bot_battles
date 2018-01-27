@@ -53,6 +53,12 @@ function BotController:InitBot (hero, team)
   hero:RespawnHero(false, false)
   ItemSelection:LevelUpHero(hero)
   BotController:Teleport(hero, team)
+  for i = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_6 do
+    local item = hero:GetItemInSlot(i)
+    if item  then
+      hero:RemoveItem(item)
+    end
+  end
 
   for _,itemName in ipairs(self.items[team]) do
     hero:AddItemByName(itemName)
@@ -62,7 +68,7 @@ function BotController:InitBot (hero, team)
     if not hero or hero:IsNull() then
       return
     end
-    hero:MoveToPositionAggressive(self.locations.center)
+    hero:MoveToPositionAggressive(self.locations.center + RandomVector(RandomFloat(200, 1000)))
     if (hero:GetAbsOrigin() - self.locations[team]):Length2D() < 1500 then
       return 1
     end

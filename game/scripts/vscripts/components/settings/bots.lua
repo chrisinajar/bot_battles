@@ -8,8 +8,11 @@ function BotController:Init()
     SendToServerConsole("dota_bot_set_difficulty 4")
     SendToServerConsole("dota_bot_practice_difficulty 4")
     -- Fill all empty slots with bots
-    SendToServerConsole("dota_bot_populate")
     SendToServerConsole("dota_all_vision")
+
+    Timers:CreateTimer(2, function()
+      SendToServerConsole("dota_bot_populate")
+    end)
   end)
 
   self.locations = {
@@ -19,9 +22,18 @@ function BotController:Init()
   }
 
   local function setupVision ()
+    AddFOWViewer(DOTA_TEAM_GOODGUYS, self.locations.dire, 999999.0, 999999.0, false)
+    AddFOWViewer(DOTA_TEAM_GOODGUYS, self.locations.radiant, 999999.0, 999999.0, false)
+    AddFOWViewer(DOTA_TEAM_GOODGUYS, self.locations.center, 999999.0, 999999.0, false)
+
+    AddFOWViewer(DOTA_TEAM_BADGUYS, self.locations.dire, 999999.0, 999999.0, false)
+    AddFOWViewer(DOTA_TEAM_BADGUYS, self.locations.radiant, 999999.0, 999999.0, false)
+    AddFOWViewer(DOTA_TEAM_BADGUYS, self.locations.center, 999999.0, 999999.0, false)
+
     AddFOWViewer(DOTA_TEAM_CUSTOM_1, self.locations.dire, 999999.0, 999999.0, false)
     AddFOWViewer(DOTA_TEAM_CUSTOM_1, self.locations.radiant, 999999.0, 999999.0, false)
     AddFOWViewer(DOTA_TEAM_CUSTOM_1, self.locations.center, 999999.0, 999999.0, false)
+
     Timers:CreateTimer(999999, function()
       setupVision()
     end)
@@ -32,6 +44,7 @@ end
 function BotController:SetTeams (selection, items)
   Debug:EnableDebugging()
   DebugPrint('Teams locked in! time to populate bots...')
+  SendToServerConsole("dota_bot_populate")
   self.selection = selection
   self.items = items
 
@@ -69,7 +82,7 @@ function BotController:InitBot (hero, team)
     if not hero or hero:IsNull() then
       return
     end
-    hero:MoveToPositionAggressive(self.locations.center + RandomVector(RandomFloat(200, 1000)))
+    hero:MoveToPositionAggressive(self.locations.center + RandomVector(RandomFloat(200, 600)))
     if (hero:GetAbsOrigin() - self.locations[team]):Length2D() < 1500 then
       return 1
     end

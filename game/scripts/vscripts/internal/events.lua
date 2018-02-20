@@ -99,8 +99,6 @@ function GameMode:_OnEntityKilled( keys )
 
     killedUnit:SetRespawnsDisabled(not killedUnit:IsReincarnating())
 
-    killedUnit:SetTimeUntilRespawn(99)
-
     if killerTeam ~= DOTA_TEAM_BADGUYS and killerTeam ~= DOTA_TEAM_GOODGUYS and not killedUnit:IsReincarnating() then
     else
       keys.killer = killerEntity

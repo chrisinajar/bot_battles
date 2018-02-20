@@ -7,11 +7,15 @@ function BotController:Init()
     -- Set bot difficulty
     SendToServerConsole("dota_bot_set_difficulty 4")
     SendToServerConsole("dota_bot_practice_difficulty 4")
+    SendToServerConsole("dota_bot_purchase_item_enable 0")
+
     -- Fill all empty slots with bots
     SendToServerConsole("dota_all_vision")
 
     Timers:CreateTimer(2, function()
+      DebugPrint(PlayerResource:GetAllTeamPlayerIDs():length())
       SendToServerConsole("dota_bot_populate")
+      return 10
     end)
   end)
 

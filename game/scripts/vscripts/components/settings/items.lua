@@ -5,6 +5,7 @@ function ItemSelection:Init()
   Debug:EnableDebugging()
   self:Reset()
   self.loadedHeroes = {}
+  self.prisonLocation = Entities:FindByName(nil, "player_prison"):GetAbsOrigin()
 
   CustomGameEventManager:RegisterListener('done_shopping', partial(ItemSelection.DoneShopping, self))
   CustomGameEventManager:RegisterListener('reset', partial(ItemSelection.Reset, self))
@@ -16,10 +17,10 @@ function ItemSelection:Reset (playerID, keys)
     if not hero then
       return
     end
+    hero:SetRespawnsDisabled(true)
     if hero:IsAlive() then
       hero:Kill(nil, hero)
     end
-    hero:SetRespawnsDisabled(true)
   end
   each(killHero, PlayerResource:GetAllTeamPlayerIDs())
 
@@ -47,10 +48,11 @@ function ItemSelection:DoneShopping (playerID, keys)
   local hero = PlayerResource:GetSelectedHeroEntity(self.selection.playerID)
   local items = {}
   -- Store items of current hero
-  for i = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_6 do
+  for i = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_9 do
     local item = hero:GetItemInSlot(i)
     if item  then
       table.insert(items, item:GetName())
+      UTIL_Remove(item)
     end
   end
 
@@ -58,8 +60,8 @@ function ItemSelection:DoneShopping (playerID, keys)
     self.state.isSelecting = false
     self.state.dire = items
     DebugPrint('All done calculating items!')
-    hero:Kill(nil, hero)
     hero:SetRespawnsDisabled(true)
+    FindClearSpaceForUnit(hero, self.prisonLocation, true)
 
     BotController:SetTeams(self.selection, self.state)
   end
@@ -74,10 +76,19 @@ end
 
 function ItemSelection:EnableHero (heroName)
   DebugPrint('Replacing the hero so they can select items! ' .. heroName)
+  local oldHero = PlayerResource:GetSelectedHeroEntity(self.selection.playerID)
+
+  for i = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_9 do
+    local item = oldHero:GetItemInSlot(i)
+    if item and not item:IsNull() then
+      oldHero:RemoveItem(item)
+      UTIL_Remove(item)
+    end
+  end
+
   GameRules:SetUseUniversalShopMode(true)
   HudTimer:SetGameTime(0)
   self:CacheHeroForPlayer(heroName, self.selection.playerID, function (hero)
-    hero:SetRespawnsDisabled(false)
     hero:RespawnHero(false, false)
     PlayerResource:ModifyGold(self.selection.playerID, 99999, true, DOTA_ModifyGold_RoshanKill)
     self:LevelUpHero(hero)

@@ -6,6 +6,7 @@ function ItemSelection:Init()
   self:Reset()
   self.loadedHeroes = {}
   self.prisonLocation = Entities:FindByName(nil, "player_prison"):GetAbsOrigin()
+  self.abilitySelection = {}
 
   CustomGameEventManager:RegisterListener('done_shopping', partial(ItemSelection.DoneShopping, self))
   CustomGameEventManager:RegisterListener('reset', partial(ItemSelection.Reset, self))
@@ -18,6 +19,12 @@ function ItemSelection:Reset (playerID, keys)
       return
     end
     hero:SetRespawnsDisabled(true)
+	
+	hero:ClearLastHitMultikill()
+	hero:ClearLastHitStreak()
+	hero:ClearStreak()
+	PlayerResource:ClearKillsMatrix(playerID)
+	
     if hero:IsAlive() then
       hero:Kill(nil, hero)
     end
@@ -55,6 +62,14 @@ function ItemSelection:DoneShopping (playerID, keys)
       UTIL_Remove(item)
     end
   end
+  
+  local skillTable = {}
+  for i = 0, 23 do
+    local ability = hero:GetAbilityByIndex(i)
+	if ability and ability:GetLevel() > 0 then
+	  skillTable[ability:GetName()] = ability:GetLevel()
+	end
+  end
 
   if self.state.isSelecting == 'dire' then
     self.state.isSelecting = false
@@ -62,12 +77,13 @@ function ItemSelection:DoneShopping (playerID, keys)
     DebugPrint('All done calculating items!')
     hero:SetRespawnsDisabled(true)
     FindClearSpaceForUnit(hero, self.prisonLocation, true)
-
+    self:AssignAbilitySelectionToTeam( DOTA_TEAM_BADGUYS, skillTable)
     BotController:SetTeams(self.selection, self.state)
   end
   if self.state.isSelecting == 'radiant' then
     self.state.radiant = items
     self.state.isSelecting = 'dire'
+	self:AssignAbilitySelectionToTeam( DOTA_TEAM_GOODGUYS, skillTable)
     self:EnableHero(self.selection.dire)
   end
 
@@ -145,4 +161,12 @@ function ItemSelection:LevelUpHero(hero)
   Timers:CreateTimer(0.1, function()
     self:LevelUpHero(hero)
   end)
+end
+
+function ItemSelection:AssignAbilitySelectionToTeam( teamID, skillTable )
+  self.abilitySelection[teamID] = skillTable
+end
+
+function ItemSelection:GetAbilitySelectionToTeam( teamID )
+  return self.abilitySelection[teamID]
 end

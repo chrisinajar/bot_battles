@@ -21,8 +21,25 @@ function Heroes:Init()
   CustomGameEventManager:RegisterListener('level_down', partial(Heroes.LevelDown, self))
   CustomGameEventManager:RegisterListener('startgame', partial(Heroes.StartGame, self))
   CustomGameEventManager:RegisterListener('reset', partial(Heroes.Reset, self))
+  
+  GameEvents:OnHeroKilled(partial(self.OnHeroKilled, self))
 
   CustomNetTables:SetTableValue( 'hero_selection', 'herolist', {gametype = GetMapName(), herolist = herolist})
+end
+
+function Heroes:OnHeroKilled(keys)
+  local killer = keys.killer
+  local killed = keys.killed
+  local killerTeam = killer:GetTeam()
+  if killer ~= killed then
+    print("?")
+    if killerTeam == DOTA_TEAM_GOODGUYS then
+      self.selection.radiantKills = self.selection.radiantKills + 1
+    elseif killerTeam == DOTA_TEAM_BADGUYS then
+      self.selection.direKills = self.selection.direKills + 1
+    end
+	CustomNetTables:SetTableValue( 'hero_selection', 'selection', self.selection)
+  end
 end
 
 function Heroes:Reset (playerID, keys)
@@ -30,7 +47,9 @@ function Heroes:Reset (playerID, keys)
     isSelecting = true,
     radiant = false,
     dire = false,
-    level = 1
+    level = 1,
+  direKills = 0,
+  radiantKills = 0,
   }
   CustomNetTables:SetTableValue( 'hero_selection', 'selection', self.selection)
 end

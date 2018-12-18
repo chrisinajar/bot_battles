@@ -1,6 +1,6 @@
 
 BotController = BotController or class({})
-
+DELAY_TO_WALK = 20
 function BotController:Init()
   Debug:EnableDebugging()
   GameEvents:OnCustomGameSetup(function ()
@@ -25,17 +25,17 @@ function BotController:Init()
   }
 
   local function setupVision ()
-    AddFOWViewer(DOTA_TEAM_GOODGUYS, self.locations.dire, 999999.0, 999999.0, false)
-    AddFOWViewer(DOTA_TEAM_GOODGUYS, self.locations.radiant, 999999.0, 999999.0, false)
-    AddFOWViewer(DOTA_TEAM_GOODGUYS, self.locations.center, 999999.0, 999999.0, false)
+    AddFOWViewer(DOTA_TEAM_GOODGUYS, self.locations.dire, -1, -1, false)
+    AddFOWViewer(DOTA_TEAM_GOODGUYS, self.locations.radiant, -1, -1, false)
+    AddFOWViewer(DOTA_TEAM_GOODGUYS, self.locations.center, -1, -1, false)
 
-    AddFOWViewer(DOTA_TEAM_BADGUYS, self.locations.dire, 999999.0, 999999.0, false)
-    AddFOWViewer(DOTA_TEAM_BADGUYS, self.locations.radiant, 999999.0, 999999.0, false)
-    AddFOWViewer(DOTA_TEAM_BADGUYS, self.locations.center, 999999.0, 999999.0, false)
+    AddFOWViewer(DOTA_TEAM_BADGUYS, self.locations.dire, -1, -1, false)
+    AddFOWViewer(DOTA_TEAM_BADGUYS, self.locations.radiant, -1, -1, false)
+    AddFOWViewer(DOTA_TEAM_BADGUYS, self.locations.center, -1, -1, false)
 
-    AddFOWViewer(DOTA_TEAM_CUSTOM_1, self.locations.dire, 999999.0, 999999.0, false)
-    AddFOWViewer(DOTA_TEAM_CUSTOM_1, self.locations.radiant, 999999.0, 999999.0, false)
-    AddFOWViewer(DOTA_TEAM_CUSTOM_1, self.locations.center, 999999.0, 999999.0, false)
+    AddFOWViewer(DOTA_TEAM_CUSTOM_1, self.locations.dire, -1, -1, false)
+    AddFOWViewer(DOTA_TEAM_CUSTOM_1, self.locations.radiant, -1, -1, false)
+    AddFOWViewer(DOTA_TEAM_CUSTOM_1, self.locations.center, -1, -1, false)
 
     Timers:CreateTimer(999999, function()
       setupVision()
@@ -50,6 +50,22 @@ function BotController:SetTeams (selection, items)
   SendToServerConsole("dota_bot_populate")
   self.selection = selection
   self.items = items
+  HudTimer:SetGameTime(DELAY_TO_WALK)
+  HudTimer:SetCountDown(true)
+  Timers:CreateTimer(1, function()
+	local tTime = HudTimer:GetGameTime()
+	if HudTimer:GetCountDown() then
+		if tTime <= 10 and tTime > 0 then
+		  Notifications:TopToAll({text=tTime, duration=0.8})
+		elseif tTime == 0 then
+		  HudTimer:SetGameTime(0)
+		  HudTimer:SetCountDown(false)
+		  Notifications:TopToAll({text="GO!", duration=1})
+		  EmitGlobalSound("GameStart.RadiantAncient")
+		end
+		return 1
+	end
+  end)
 
   local function spawnBot (team, botID)
     if botID == selection.playerID then
@@ -80,12 +96,26 @@ function BotController:InitBot (hero, team)
   for _,itemName in ipairs(self.items[team]) do
     hero:AddItemByName(itemName)
   end
-
+  hero:SetAbilityPoints(0)
+  hero:SetAcquisitionRange(1200)
+  local skillSelection = ItemSelection:GetAbilitySelectionToTeam( hero:GetTeamNumber() )
   Timers:CreateTimer(0.1, function()
+    for i = 0, 23 do
+      local ability = hero:GetAbilityByIndex(i)
+	  if ability then
+		if skillSelection[ability:GetName()] then
+			ability:SetLevel( tonumber(skillSelection[ability:GetName()]) )
+		elseif ability:GetLevel() > 0 then
+			ability:SetLevel( 0 )
+		end
+	  end
+    end
+  end)
+  Timers:CreateTimer(DELAY_TO_WALK, function()
     if not hero or hero:IsNull() then
       return
     end
-    hero:MoveToPositionAggressive(self.locations.center + RandomVector(RandomFloat(200, 600)))
+    hero:MoveToPositionAggressive( self.locations.center + RandomVector(RandomFloat(200, 600)))
     if (hero:GetAbsOrigin() - self.locations[team]):Length2D() < 1500 then
       return 1
     end

@@ -61,6 +61,13 @@
     GameEvents.Subscribe("onGameInCheatMode", function () {
       $.Msg("\nThis Match is in Cheat Mode!\n")
     })
+
+    var hud = $.GetContextPanel().GetParent();
+    while(hud.id != "Hud")
+      hud = hud.GetParent();
+
+    var killFeed = hud.FindChildTraverse("combat_events");
+    killFeed.visible = false;
   </script>
 
   <Panel>

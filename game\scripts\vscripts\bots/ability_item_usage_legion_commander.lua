@@ -8,14 +8,17 @@ local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castOODesire = 0;
@@ -32,7 +35,7 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -55,38 +58,38 @@ function AbilityUsageThink()
 		npcBot:Action_UseAbility( ItemBM );
 		return;
 	end
-	
-	if ( castPTADesire > castDLDesire and  castPTADesire > castOODesire) 
+
+	if ( castPTADesire > castDLDesire and  castPTADesire > castOODesire)
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityPTA, castPTATarget );
 		return;
 	end
 
-	if ( castDLDesire > 0 ) 
+	if ( castDLDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityDL, castDLTarget );
 		return;
 	end
-	
-	if ( castOODesire > 0 ) 
+
+	if ( castOODesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilityOO, castOOLocation );
 		return;
 	end
-	
+
 
 end
 
 function ConsiderOverwhelmingOdds()
 
 	-- Make sure it's castable
-	if ( not abilityOO:IsFullyCastable() ) 
-	then 
+	if ( not abilityOO:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 --
 	-- If we want to cast Laguna Blade at all, bail
-	--[[if ( castDLDesire > 0 ) 
+	--[[if ( castDLDesire > 0 )
 	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end]]--
@@ -108,26 +111,26 @@ function ConsiderOverwhelmingOdds()
 			end
 		end
 	end
-	
+
 	-- If a mode has set a target, and we can kill them, do it
 	local npcTarget = npcBot:GetTarget();
-	if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) 
+	if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget)
 		and mutil.IsInRange(npcTarget, npcBot, nCastRange+200) and mutil.CanKillTarget(npcTarget, nDamage, DAMAGE_TYPE_MAGICAL)
 	then
 		return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetExtrapolatedLocation( nCastPoint );
 	end
-	
+
 	-- If we're pushing or defending a lane and can hit 4+ creeps, go for it
 	if  ( mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot) ) and npcBot:GetMana() / npcBot:GetMaxMana() > 0.6
 	then
 		local lanecreeps = npcBot:GetNearbyLaneCreeps(nCastRange+200, true);
 		local locationAoE = npcBot:FindAoELocation( true, false, npcBot:GetLocation(), nCastRange, nRadius/2, 0, 0 );
-		if ( locationAoE.count >= 4 and #lanecreeps >= 4  ) 
+		if ( locationAoE.count >= 4 and #lanecreeps >= 4  )
 		then
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -143,14 +146,14 @@ end
 function ConsiderDuel()
 
 	-- Make sure it's castable
-	if ( not abilityDL:IsFullyCastable() ) then 
+	if ( not abilityDL:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
 	-- Get some of its values
 	local nCastRange = abilityDL:GetCastRange();
 	local nDamage = 500;
-	
+
 	-- If we're in a teamfight, use it on the scariest enemy
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
@@ -187,7 +190,7 @@ function ConsiderDuel()
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 
 end
@@ -195,36 +198,36 @@ end
 function ConsiderPressTheAttack()
 
 	-- Make sure it's castable
-	if ( not abilityPTA:IsFullyCastable() ) then 
+	if ( not abilityPTA:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
 	-- Get some of its values
 	local nCastRangeU = abilityDL:GetCastRange();
 	local nCastRange = abilityPTA:GetCastRange();
-	
+
 	if npcBot:GetHealth() / npcBot:GetMaxHealth() < 0.5 and npcBot:GetMana() / npcBot:GetMaxMana() > 0.5 then
 		return BOT_ACTION_DESIRE_LOW, npcBot;
 	end
-	
+
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
 			then
 				return BOT_ACTION_DESIRE_HIGH, npcBot;
 			end
 		end
 	end
-	
+
 	if npcBot:GetActiveMode() == BOT_MODE_FARM and npcBot:GetHealth() / npcBot:GetMaxHealth() < 0.55
 	then
 		return BOT_ACTION_DESIRE_LOW, npcBot;
-	end	
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+	end
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 300)  )
@@ -232,7 +235,7 @@ function ConsiderPressTheAttack()
 			return BOT_ACTION_DESIRE_LOW, npcBot;
 		end
 	end
-	
+
 	-- If we're in a teamfight, use it on the scariest enemy
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
@@ -269,7 +272,7 @@ function ConsiderPressTheAttack()
 			return BOT_ACTION_DESIRE_HIGH, npcBot;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 
 end

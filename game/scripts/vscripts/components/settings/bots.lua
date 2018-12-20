@@ -52,19 +52,20 @@ function BotController:SetTeams (selection, items)
   self.items = items
   HudTimer:SetGameTime(DELAY_TO_WALK)
   HudTimer:SetCountDown(true)
+
   Timers:CreateTimer(1, function()
-	local tTime = HudTimer:GetGameTime()
-	if HudTimer:GetCountDown() then
-		if tTime <= 10 and tTime > 0 then
-		  Notifications:TopToAll({text=tTime, duration=0.8})
-		elseif tTime == 0 then
-		  HudTimer:SetGameTime(0)
-		  HudTimer:SetCountDown(false)
-		  Notifications:TopToAll({text="GO!", duration=1})
-		  EmitGlobalSound("GameStart.RadiantAncient")
-		end
-		return 1
-	end
+    local tTime = HudTimer:GetGameTime()
+    if HudTimer:GetCountDown() then
+      if tTime <= 10 and tTime > 0 then
+        Notifications:TopToAll({text=tTime, duration=0.8})
+      elseif tTime == 0 then
+        HudTimer:SetGameTime(0)
+        HudTimer:SetCountDown(false)
+        Notifications:TopToAll({text="GO!", duration=1})
+        EmitGlobalSound("GameStart.RadiantAncient")
+      end
+      return 1
+    end
   end)
 
   local function spawnBot (team, botID)
@@ -98,17 +99,22 @@ function BotController:InitBot (hero, team)
   end
   hero:SetAbilityPoints(0)
   hero:SetAcquisitionRange(1200)
+  hero:SetHealth(hero:GetMaxHealth())
+  hero:SetMana(hero:GetMaxMana())
+
   local skillSelection = ItemSelection:GetAbilitySelectionToTeam( hero:GetTeamNumber() )
   Timers:CreateTimer(0.1, function()
     for i = 0, 23 do
       local ability = hero:GetAbilityByIndex(i)
-	  if ability then
-		if skillSelection[ability:GetName()] then
-			ability:SetLevel( tonumber(skillSelection[ability:GetName()]) )
-		elseif ability:GetLevel() > 0 then
-			ability:SetLevel( 0 )
-		end
-	  end
+      if ability then
+        if skillSelection[ability:GetName()] then
+          ability:SetLevel( tonumber(skillSelection[ability:GetName()]) )
+        elseif ability:GetLevel() > 0 then
+          ability:SetLevel( 0 )
+        end
+        ability:EndCooldown()
+        ability:RefreshCharges()
+      end
     end
   end)
   Timers:CreateTimer(DELAY_TO_WALK, function()

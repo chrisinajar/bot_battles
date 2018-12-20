@@ -21,7 +21,7 @@ function Heroes:Init()
   CustomGameEventManager:RegisterListener('level_down', partial(Heroes.LevelDown, self))
   CustomGameEventManager:RegisterListener('startgame', partial(Heroes.StartGame, self))
   CustomGameEventManager:RegisterListener('reset', partial(Heroes.Reset, self))
-  
+
   GameEvents:OnHeroKilled(partial(self.OnHeroKilled, self))
 
   CustomNetTables:SetTableValue( 'hero_selection', 'herolist', {gametype = GetMapName(), herolist = herolist})
@@ -47,9 +47,9 @@ function Heroes:Reset (playerID, keys)
     isSelecting = true,
     radiant = false,
     dire = false,
-    level = 1,
-  direKills = 0,
-  radiantKills = 0,
+    level = 5,
+    direKills = 0,
+    radiantKills = 0,
   }
   CustomNetTables:SetTableValue( 'hero_selection', 'selection', self.selection)
 end
@@ -82,11 +82,19 @@ function Heroes:HeroSelected (playerID, keys)
 end
 
 function Heroes:LevelUp (playerID, keys)
-  self.selection.level = math.min(25, self.selection.level + 1)
+  if self.selection.level == 5 then
+    self.selection.level = 15
+  else
+    self.selection.level = math.min(25, self.selection.level + 10)
+  end
   CustomNetTables:SetTableValue( 'hero_selection', 'selection', self.selection)
 end
 
 function Heroes:LevelDown (playerID, keys)
-  self.selection.level = math.max(1, self.selection.level - 1)
+  if self.selection.level == 15 then
+    self.selection.level = 5
+  else
+    self.selection.level = math.max(5, self.selection.level - 10)
+  end
   CustomNetTables:SetTableValue( 'hero_selection', 'selection', self.selection)
 end

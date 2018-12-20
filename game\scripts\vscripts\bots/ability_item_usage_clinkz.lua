@@ -6,8 +6,8 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
@@ -31,7 +31,7 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -43,76 +43,65 @@ function AbilityUsageThink()
 	if abilitySA:IsTrained() then
 		ToggleSearingArrow();
 	end
-	
+
 	castSTDesire, castSTTarget = ConsiderStarfe()
 	castSADesire, castSATarget = ConsiderSearingArrows()
 	castWWDesire               = ConsiderWindWalk()
 	castDPDesire, castDPTarget = ConsiderDeathPack()
-	
+
 	if castSTDesire > 0
 	then
 		npcBot:Action_UseAbility(abilityST);
 	end
-	
-	if castSADesire > 0 
+
+	if castSADesire > 0
 	then
 		npcBot:Action_UseAbilityOnEntity(abilitySA, castSATarget);
 	end
-	
+
 	if castWWDesire > 0
 	then
 		npcBot:Action_UseAbility(abilityWW);
 	end
-	
+
 	if castDPDesire > 0
 	then
 		npcBot:Action_UseAbilityOnEntity(abilityDP, castDPTarget);
 	end
-	
+
 end
 
 function ToggleSearingArrow()
 
 	local currManaP = npcBot:GetMana() / npcBot:GetMaxMana();
 	local npcTarget = npcBot:GetTarget();
-	
-	if ( npcTarget ~= nil and 
-		( npcTarget:IsHero() or npcTarget:IsTower() or npcTarget:GetUnitName() == "npc_dota_roshan" ) and 
-		mutil.CanCastOnNonMagicImmune(npcTarget) and 
-		currManaP > .25 
-		) 
+
+	if ( npcTarget ~= nil and
+		( npcTarget:IsHero() or npcTarget:IsTower() or npcTarget:GetUnitName() == "npc_dota_roshan" ) and
+		mutil.CanCastOnNonMagicImmune(npcTarget) and
+		currManaP > .25
+		)
 	then
 		if not abilitySA:GetAutoCastState( ) then
 			abilitySA:ToggleAutoCast()
 		end
-	else 
+	else
 		if  abilitySA:GetAutoCastState( ) then
 			abilitySA:ToggleAutoCast()
 		end
 	end
-	
+
 end
 
 function ConsiderStarfe()
 
-	if ( not abilityST:IsFullyCastable() ) then 
+	if ( not abilityST:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local attackRange = npcBot:GetAttackRange()
-	
-	if mutil.IsPushing(npcBot)
-	then
-		local tableNearbyEnemyTowers = npcBot:GetNearbyTowers( attackRange, true );
-		if tableNearbyEnemyTowers[1] ~= nil 
-			and not tableNearbyEnemyTowers[1]:IsInvulnerable() 
-			and GetUnitToUnitDistance(  tableNearbyEnemyTowers[1], npcBot  ) < attackRange
-		then	
-			return BOT_ACTION_DESIRE_MODERATE;
-		end
-	end
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, attackRange)  )
@@ -120,7 +109,7 @@ function ConsiderStarfe()
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
@@ -131,14 +120,14 @@ function ConsiderStarfe()
 	end
 
 	return BOT_ACTION_DESIRE_NONE;
-	
+
 end
 
 
 
 function ConsiderSearingArrows()
 
-	if ( not abilitySA:IsFullyCastable() ) then 
+	if ( not abilitySA:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -149,7 +138,7 @@ function ConsiderSearingArrows()
 	local nDamage = npcBot:GetAttackDamage() + abilitySA:GetSpecialValueInt( "damage_bonus" );
 	local currManaP = npcBot:GetMana() / npcBot:GetMaxMana();
 	local attackRange = npcBot:GetAttackRange()
-	
+
 	if npcBot:GetActiveMode() == BOT_MODE_LANING then
 		local laneCreeps = npcBot:GetNearbyLaneCreeps(attackRange, true);
 		for _,creep in pairs(laneCreeps)
@@ -159,8 +148,8 @@ function ConsiderSearingArrows()
 			end
 		end
 	end
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, attackRange)  )
@@ -168,27 +157,27 @@ function ConsiderSearingArrows()
 			return BOT_ACTION_DESIRE_LOW, npcTarget;
 		end
 	end
-	
+
 	if npcBot:GetActiveMode() == BOT_MODE_LANING then
 		local NearbyEnemyHeroes = npcBot:GetNearbyHeroes(attackRange, true, BOT_MODE_NONE);
 		if NearbyEnemyHeroes[1] ~=  nil and mutil.CanCastOnNonMagicImmune(NearbyEnemyHeroes[1]) and currManaP > 0.65  then
 			return BOT_ACTION_DESIRE_LOW, NearbyEnemyHeroes[1];
 		end
 	end
-	
-	
+
+
 	return BOT_ACTION_DESIRE_NONE, 0;
-	
+
 end
 
 function ConsiderWindWalk()
-	
-	if ( not abilityWW:IsFullyCastable() ) then 
+
+	if ( not abilityWW:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local attackRange = npcBot:GetAttackRange()
-	
+
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
@@ -200,29 +189,29 @@ function ConsiderWindWalk()
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if mutil.IsValidTarget(npcTarget) and not mutil.IsInRange(npcTarget, npcBot, attackRange + 300) 
+		if mutil.IsValidTarget(npcTarget) and not mutil.IsInRange(npcTarget, npcBot, attackRange + 300)
 		then
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
-	
+
 end
 
 function ConsiderDeathPack()
 
-	if ( not abilityDP:IsFullyCastable() ) then 
+	if ( not abilityDP:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	local currManaP = npcBot:GetMana() / npcBot:GetMaxMana();
-	
+
 	if currManaP < 0.15
 	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	local maxHP = 0;
 	local NCreep = nil;
 	local tableNearbyCreeps = npcBot:GetNearbyCreeps( 800, true );
@@ -230,7 +219,7 @@ function ConsiderDeathPack()
 		for _,creeps in pairs(tableNearbyCreeps)
 		do
 			local CreepHP = creeps:GetHealth();
-			if CreepHP > maxHP and ( creeps:GetHealth() / creeps:GetMaxHealth() > .75 
+			if CreepHP > maxHP and ( creeps:GetHealth() / creeps:GetMaxHealth() > .75
 				and mutil.CanCastOnNonMagicImmune(creeps) ) and not creeps:IsAncientCreep()
 			then
 				NCreep = creeps;
@@ -238,10 +227,10 @@ function ConsiderDeathPack()
 			end
 		end
 	end
-	
+
 	if NCreep ~= nil then
 		return BOT_ACTION_DESIRE_LOW, NCreep;
-	end	
+	end
 
 	return BOT_ACTION_DESIRE_NONE, 0;
 

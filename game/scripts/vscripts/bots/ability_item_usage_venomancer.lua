@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 ----------------------------------------------------------------------------------------------------
 
@@ -81,51 +84,6 @@ function ConsiderPlagueWard()
 
 	local nCastRange = abilityPW:GetCastRange();
 
-	--------------------------------------
-	-- Mode based usage
-	--------------------------------------
-
-	if ( npcBot:GetActiveMode() == BOT_MODE_LANING and
-		npcBot:GetMana()/npcBot:GetMaxMana() >= 0.75 )
-	then
-		local tableNearbyEnemyCreeps = npcBot:GetNearbyLaneCreeps( 1000, true);
-		if(tableNearbyEnemyCreeps[1] ~= nil) then
-			return BOT_ACTION_DESIRE_LOW, tableNearbyEnemyCreeps[1]:GetLocation();
-		end
-	end
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
-	then
-		local npcTarget = npcBot:GetTarget();
-		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange)  )
-		then
-			return BOT_ACTION_DESIRE_LOW, npcTarget:GetLocation();
-		end
-	end
-
-	-- If we're pushing or defending a lane and can hit 4+ creeps, go for it
-	if mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot) and npcBot:GetMana()/npcBot:GetMaxMana() >= 0.55
-	then
-		local tableNearbyEnemyCreeps = npcBot:GetNearbyLaneCreeps( 1000, true);
-		if(tableNearbyEnemyCreeps[1] ~= nil ) 
-		then
-			return BOT_ACTION_DESIRE_LOW, tableNearbyEnemyCreeps[1]:GetLocation();
-		end
-	end
-
-	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
-	if mutil.IsRetreating(npcBot)
-	then
-		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
-		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
-		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) )
-			then
-				return BOT_ACTION_DESIRE_MODERATE, npcEnemy:GetLocation();
-			end
-		end
-	end
-
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -142,12 +100,12 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function ConsiderVenomGale()
-	
+
 	-- Make sure it's castable
 	if ( not abilityVG:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	if ( castPNDesire > 0 ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
@@ -155,7 +113,7 @@ function ConsiderVenomGale()
 	-- Get some of its values
 	local nCastRange = abilityVG:GetCastRange();
 	local nRadius = 125;
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
@@ -214,7 +172,7 @@ function ConsiderPoisonNova()
 		end
 	end
 
-	if mutil.IsInTeamFight(npcBot, 1200) 
+	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius - 200, true, BOT_MODE_NONE  );
 		if ( tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes >= 2 )
@@ -240,4 +198,4 @@ function ConsiderPoisonNova()
 
 	return BOT_ACTION_DESIRE_NONE;
 
-end 
+end

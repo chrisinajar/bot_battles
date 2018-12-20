@@ -16,10 +16,10 @@ if trueMK == nil or bot == trueMK then
 end
 print("Bot MK "..tostring(bot).." isn't true MK")
 
-function  MinionThink(  hMinionUnit ) 
+-- function  MinionThink(  hMinionUnit )
 
-end
+-- end
 
-function Think()
-	
-end
+-- function Think()
+
+-- end

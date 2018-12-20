@@ -64,6 +64,7 @@ X.Roles = {
    ["npc_dota_hero_nyx_assassin"] = 3;
    ["npc_dota_hero_obsidian_destroyer"] = 2;
    ["npc_dota_hero_ogre_magi"] = 5;
+   ["npc_dota_hero_grimstroke"] = 5;
    ["npc_dota_hero_omniknight"] = 5;
    ["npc_dota_hero_oracle"] = 5;
    ["npc_dota_hero_phantom_assassin"] = 1;

@@ -8,8 +8,11 @@
     <include src="file://{resources}/scripts/custom_game/common.js" />
     <include src="file://{resources}/scripts/custom_game/shop.js" />
   </scripts>
-  <Panel class="ShopOptions hidden">
-    <Label id="DoneShopping" text="Done Shopping" onactivate="DoneShopping()" />
-    <Label id="StartOver" text="Start Over" onactivate="ResetSettings()" />
+  <Panel class="ShopWrapper hidden" onmouseover="ShopHoverIn()" onmouseout="ShopHoverOut()">
+    <Panel class="ShopOptions">
+      <Label id="DoneShopping" text="Done Shopping" onactivate="DoneShopping()" />
+      <Label id="StartOver" text="Start Over" onactivate="ResetSettings()" />
+      <Label id="Repeat" text="Repeat Fight" onactivate="Repeat()" />
+    </Panel>
   </Panel>
 </root>

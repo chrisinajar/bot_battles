@@ -8,11 +8,11 @@ local maxAddedRange = 200;
 local fSpamThreshold = 0.55;
 
 local listBoots = {
-	['item_boots'] = 45, 
-	['item_tranquil_boots'] = 90, 
-	['item_power_treads'] = 45, 
-	['item_phase_boots'] = 45, 
-	['item_arcane_boots'] = 50, 
+	['item_boots'] = 45,
+	['item_tranquil_boots'] = 90,
+	['item_power_treads'] = 45,
+	['item_phase_boots'] = 45,
+	['item_arcane_boots'] = 50,
 	['item_guardian_greaves'] = 55,
 	['item_travel_boots'] = 100,
 	['item_travel_boots_2'] = 100
@@ -35,9 +35,9 @@ function U.InitiateAbilities(hUnit, tSlots)
 end
 
 function U.CantUseAbility(bot)
-	return bot:NumQueuedActions() > 0 
-		   or bot:IsAlive() == false or bot:IsInvulnerable() or bot:IsCastingAbility() or bot:IsUsingAbility() or bot:IsChanneling()  
-	       or bot:IsSilenced() or bot:IsStunned() or bot:IsHexed()  
+	return bot:NumQueuedActions() > 0
+		   or bot:IsAlive() == false or bot:IsInvulnerable() or bot:IsCastingAbility() or bot:IsUsingAbility() or bot:IsChanneling()
+	       or bot:IsSilenced() or bot:IsStunned() or bot:IsHexed()
 		   or bot:HasModifier("modifier_doom_bringer_doom")
 		   or bot:HasModifier('modifier_item_forcestaff_active')
 end
@@ -80,8 +80,8 @@ function U.GetVulnerableWeakestUnit(bHero, bEnemy, nRadius, bot)
 end
 
 function U.GetUnitCountAroundEnemyTarget(target, nRadius)
-	local heroes = target:GetNearbyHeroes(nRadius, false, BOT_MODE_NONE);	
-	local creeps = target:GetNearbyLaneCreeps(nRadius, false);	
+	local heroes = target:GetNearbyHeroes(nRadius, false, BOT_MODE_NONE);
+	local creeps = target:GetNearbyLaneCreeps(nRadius, false);
 	return #heroes + #creeps;
 end
 
@@ -161,10 +161,10 @@ end
 function U.IsEnemyTargetMyTarget(bot, hTarget)
 	local enemies = bot:GetNearbyHeroes(1600, true, BOT_MODE_NONE);
 	for _,enemy in pairs(enemies) do
-		local eaTarget = enemy:GetAttackTarget(); 
+		local eaTarget = enemy:GetAttackTarget();
 		if eaTarget ~= nil and eaTarget == hTarget then
 			return true;
-		end	
+		end
 	end
 	return false;
 end
@@ -198,7 +198,7 @@ function U.IsHumanPlayerCanKill(target)
 			print("Human Pinging! You're not Allowed to Kill The Target!");
 			return true;
 		elseif U.IsHumanCanKillTheTarget(target, humanPlayers) then
-			print("Human Can Kill The Target! You're not Allowed to Kill The Target!");	
+			print("Human Can Kill The Target! You're not Allowed to Kill The Target!");
 			return true;
 		end
 	end
@@ -211,8 +211,8 @@ function U.IsHumanPingNotToKill(target, listHumanPlayer)
 			local ping = human:GetMostRecentPing();
 			if ping ~= nil and not ping.normal_ping and GetUnitToLocationDistance(target, ping.location) <= 1200 and GameTime() - ping.time < 3.0 then
 				return true;
-			end	
-		end	
+			end
+		end
 	end
 	return false;
 end
@@ -223,7 +223,7 @@ function U.IsHumanCanKillTheTarget(target, listHumanPlayer)
 		if human ~= nil and not human:IsNull() and human:GetAttackTarget() == target then
 			local damage = human:GetEstimatedDamageToTarget(true, target, 2.0, DAMAGE_TYPE_ALL);
 			total_damage = total_damage + damage;
-		end	
+		end
 	end
 	if total_damage > target:GetHealth() then
 		print("Total Damage:"..tostring(total_damage))
@@ -405,20 +405,20 @@ end
 --============== ^^^^^^^^^^ NEW FUNCTION ABOVE ^^^^^^^^^ ================--
 
 function U.IsRetreating(npcBot)
-	return npcBot:GetActiveMode() == BOT_MODE_RETREAT and npcBot:GetActiveModeDesire() > BOT_MODE_DESIRE_MODERATE and npcBot:DistanceFromFountain() > 0
+	return BOT_MODE_ATTACK == BOT_MODE_RETREAT and npcBot:GetActiveModeDesire() > BOT_MODE_DESIRE_MODERATE and npcBot:DistanceFromFountain() > 0
 end
 
 function U.IsValidTarget(npcTarget)
-	return npcTarget ~= nil and npcTarget:IsAlive() and npcTarget:IsHero(); 
+	return npcTarget ~= nil and npcTarget:IsAlive() and npcTarget:IsHero();
 end
 
 function U.IsSuspiciousIllusion(npcTarget)
 	--TO DO Need to detect enemy hero's illusions better
 	local bot = GetBot();
 	--Detect allies's illusions
-	if npcTarget:IsIllusion() or npcTarget:HasModifier('modifier_illusion') 
+	if npcTarget:IsIllusion() or npcTarget:HasModifier('modifier_illusion')
 	   or npcTarget:HasModifier('modifier_phantom_lancer_doppelwalk_illusion') or npcTarget:HasModifier('modifier_phantom_lancer_juxtapose_illusion')
-       or npcTarget:HasModifier('modifier_darkseer_wallofreplica_illusion') or npcTarget:HasModifier('modifier_terrorblade_conjureimage')	   
+       or npcTarget:HasModifier('modifier_darkseer_wallofreplica_illusion') or npcTarget:HasModifier('modifier_terrorblade_conjureimage')
 	then
 		return true;
 	else
@@ -452,7 +452,7 @@ function U.CanCastOnTargetAdvanced( npcTarget )
 end
 
 function U.CanKillTarget(npcTarget, dmg, dmgType)
-	return npcTarget:GetActualIncomingDamage( dmg, dmgType ) >= npcTarget:GetHealth(); 
+	return npcTarget:GetActualIncomingDamage( dmg, dmgType ) >= npcTarget:GetHealth();
 end
 
 function U.HasForbiddenModifier(npcTarget)
@@ -460,7 +460,7 @@ function U.HasForbiddenModifier(npcTarget)
 	do
 		if npcTarget:HasModifier(mod) then
 			return true
-		end	
+		end
 	end
 	return false;
 end
@@ -479,7 +479,7 @@ end
 
 function U.IsDisabled(enemy, npcTarget)
 	if enemy then
-		return npcTarget:IsRooted( ) or npcTarget:IsStunned( ) or npcTarget:IsHexed( ) or npcTarget:IsNightmared() or U.IsTaunted(npcTarget); 
+		return npcTarget:IsRooted( ) or npcTarget:IsStunned( ) or npcTarget:IsHexed( ) or npcTarget:IsNightmared() or U.IsTaunted(npcTarget);
 	else
 		return npcTarget:IsRooted( ) or npcTarget:IsStunned( ) or npcTarget:IsHexed( ) or npcTarget:IsNightmared() or npcTarget:IsSilenced( ) or U.IsTaunted(npcTarget);
 	end
@@ -501,9 +501,9 @@ function U.GetUpgradedSpeed(bot)
 end
 
 function U.IsTaunted(npcTarget)
-	return npcTarget:HasModifier("modifier_axe_berserkers_call") 
-	    or npcTarget:HasModifier("modifier_legion_commander_duel") 
-	    or npcTarget:HasModifier("modifier_winter_wyvern_winters_curse") 
+	return npcTarget:HasModifier("modifier_axe_berserkers_call")
+	    or npcTarget:HasModifier("modifier_legion_commander_duel")
+	    or npcTarget:HasModifier("modifier_winter_wyvern_winters_curse")
 		or npcTarget:HasModifier(" modifier_winter_wyvern_winters_curse_aura");
 end
 
@@ -517,12 +517,12 @@ function U.IsInTeamFight(npcBot, range)
 end
 
 function U.CanNotUseAbility(npcBot)
-	return npcBot:IsCastingAbility() or npcBot:IsUsingAbility() or npcBot:IsInvulnerable() 
+	return npcBot:IsCastingAbility() or npcBot:IsUsingAbility() or npcBot:IsInvulnerable()
 	or npcBot:IsChanneling() or npcBot:IsSilenced() or npcBot:HasModifier("modifier_doom_bringer_doom");
 end
 
 function U.IsGoingOnSomeone(npcBot)
-	local mode = npcBot:GetActiveMode();
+	local mode = BOT_MODE_ATTACK;
 	return mode == BOT_MODE_ROAM or
 		   mode == BOT_MODE_TEAM_ROAM or
 		   mode == BOT_MODE_GANK or
@@ -531,17 +531,17 @@ function U.IsGoingOnSomeone(npcBot)
 end
 
 function U.IsDefending(npcBot)
-	local mode = npcBot:GetActiveMode();
+	local mode = BOT_MODE_ATTACK;
 	return mode == BOT_MODE_DEFEND_TOWER_TOP or
 		   mode == BOT_MODE_DEFEND_TOWER_MID or
-		   mode == BOT_MODE_DEFEND_TOWER_BOT 
+		   mode == BOT_MODE_DEFEND_TOWER_BOT
 end
 
 function U.IsPushing(npcBot)
-	local mode = npcBot:GetActiveMode();
+	local mode = BOT_MODE_ATTACK;
 	return mode == BOT_MODE_PUSH_TOWER_TOP or
 		   mode == BOT_MODE_PUSH_TOWER_MID or
-		   mode == BOT_MODE_PUSH_TOWER_BOT 
+		   mode == BOT_MODE_PUSH_TOWER_BOT
 end
 
 function U.GetTeamFountain()
@@ -601,8 +601,8 @@ function U.GetMostHPPercent(listUnits, magicImmune)
 	for _,unit in pairs(listUnits)
 	do
 		local uPHP = unit:GetHealth() / unit:GetMaxHealth()
-		if ( ( magicImmune and U.CanCastOnMagicImmune(unit) ) or ( not magicImmune and U.CanCastOnNonMagicImmune(unit) ) ) 
-			and uPHP > mostPHP  
+		if ( ( magicImmune and U.CanCastOnMagicImmune(unit) ) or ( not magicImmune and U.CanCastOnNonMagicImmune(unit) ) )
+			and uPHP > mostPHP
 		then
 			mostPHPUnit = unit;
 			mostPHP = uPHP;
@@ -615,10 +615,10 @@ function U.GetCanBeKilledUnit(units, nDamage, nDmgType, magicImmune)
 	local target = nil;
 	for _,unit in pairs(units)
 	do
-		if ( ( magicImmune and U.CanCastOnMagicImmune(unit) ) or ( not magicImmune and U.CanCastOnNonMagicImmune(unit) ) ) 
-			   and U.CanKillTarget(unit, nDamage, nDmgType) 
+		if ( ( magicImmune and U.CanCastOnMagicImmune(unit) ) or ( not magicImmune and U.CanCastOnNonMagicImmune(unit) ) )
+			   and U.CanKillTarget(unit, nDamage, nDmgType)
 		then
-			unitKO = target;	
+			unitKO = target;
 		end
 	end
 	return target;
@@ -628,7 +628,7 @@ function U.GetCorrectLoc(target, delay)
 	if target:GetMovementDirectionStability() < 1.0 then
 		return target:GetLocation();
 	else
-		return target:GetExtrapolatedLocation(delay);	
+		return target:GetExtrapolatedLocation(delay);
 	end
 end
 
@@ -664,33 +664,10 @@ function U.GetEscapeLoc()
 end
 
 function U.IsStuck2(npcBot)
-	if npcBot.stuckLoc ~= nil and npcBot.stuckTime ~= nil then 
-		local EAd = GetUnitToUnitDistance(npcBot, GetAncient(GetOpposingTeam()));
-		if DotaTime() > npcBot.stuckTime + 5.0 and GetUnitToLocationDistance(npcBot, npcBot.stuckLoc) < 25  
-           and npcBot:GetCurrentActionType() == BOT_ACTION_TYPE_MOVE_TO and EAd > 2200		
-		then
-			print(npcBot:GetUnitName().." is stuck")
-			--DebugPause();
-			return true;
-		end
-	end
 	return false
 end
 
 function U.IsStuck(npcBot)
-	if npcBot.stuckLoc ~= nil and npcBot.stuckTime ~= nil then 
-		local attackTarget = npcBot:GetAttackTarget();
-		local EAd = GetUnitToUnitDistance(npcBot, GetAncient(GetOpposingTeam()));
-		local TAd = GetUnitToUnitDistance(npcBot, GetAncient(GetTeam()));
-		local Et = npcBot:GetNearbyTowers(450, true);
-		local At = npcBot:GetNearbyTowers(450, false);
-		if npcBot:GetCurrentActionType() == BOT_ACTION_TYPE_MOVE_TO and attackTarget == nil and EAd > 2200 and TAd > 2200 and #Et == 0 and #At == 0  
-		   and DotaTime() > npcBot.stuckTime + 5.0 and GetUnitToLocationDistance(npcBot, npcBot.stuckLoc) < 25    
-		then
-			print(npcBot:GetUnitName().." is stuck")
-			return true;
-		end
-	end
 	return false
 end
 
@@ -701,7 +678,7 @@ function U.IsExistInTable(u, tUnit)
 		end
 	end
 	return false;
-end 
+end
 
 function U.FindNumInvUnitInLoc(pierceImmune, bot, nRange, nRadius, loc)
 	local nUnits = 0;
@@ -729,15 +706,15 @@ end
 
 function U.CanBeDominatedCreeps(name)
 	return name == "npc_dota_neutral_centaur_khan"
-		 or name == "npc_dota_neutral_polar_furbolg_ursa_warrior"	
-		 or name == "npc_dota_neutral_satyr_hellcaller"	
-		 or name == "npc_dota_neutral_dark_troll_warlord"	
-		 or name == "npc_dota_neutral_mud_golem"	
-		 or name == "npc_dota_neutral_harpy_storm"	
-		 or name == "npc_dota_neutral_ogre_magi"	
-		 or name == "npc_dota_neutral_alpha_wolf"	
-		 or name == "npc_dota_neutral_enraged_wildkin"	
-		 or name == "npc_dota_neutral_satyr_trickster"	
+		 or name == "npc_dota_neutral_polar_furbolg_ursa_warrior"
+		 or name == "npc_dota_neutral_satyr_hellcaller"
+		 or name == "npc_dota_neutral_dark_troll_warlord"
+		 or name == "npc_dota_neutral_mud_golem"
+		 or name == "npc_dota_neutral_harpy_storm"
+		 or name == "npc_dota_neutral_ogre_magi"
+		 or name == "npc_dota_neutral_alpha_wolf"
+		 or name == "npc_dota_neutral_enraged_wildkin"
+		 or name == "npc_dota_neutral_satyr_trickster"
 end
 
 return U;

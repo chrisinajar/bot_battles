@@ -7,10 +7,10 @@ local RB = Vector(-7174.000000, -6671.00000,  0.000000)
 local DB = Vector( 7023.000000,  6450.000000, 0.000000)
 
 local team    = GetTeam();
-local teamIds = GetTeamPlayers(team); 
+local teamIds = GetTeamPlayers(team);
 
 local opposing_team = GetOpposingTeam();
-local enemyIds      = GetTeamPlayers(opposing_team); 
+local enemyIds      = GetTeamPlayers(opposing_team);
 
 print(tostring(team)..tostring(#teamIds))
 print(tostring(opposing_team)..tostring(#enemyIds))
@@ -18,24 +18,24 @@ print(tostring(opposing_team)..tostring(#enemyIds))
 ------------------hUnit UTILITY
 
 function U.CantUseAbility(hUnit)
-	return hUnit:NumQueuedActions() > 0 
-	    or hUnit:IsAlive() == false 
-	    or hUnit:IsInvulnerable() 
-	    or hUnit:IsCastingAbility() or hUnit:IsUsingAbility() or hUnit:IsChanneling()  
-	    or hUnit:IsSilenced() or hUnit:IsStunned() or hUnit:IsHexed() or hUnit:IsNightmared() or U.IsTaunted(hUnit) 
+	return hUnit:NumQueuedActions() > 0
+	    or hUnit:IsAlive() == false
+	    or hUnit:IsInvulnerable()
+	    or hUnit:IsCastingAbility() or hUnit:IsUsingAbility() or hUnit:IsChanneling()
+	    or hUnit:IsSilenced() or hUnit:IsStunned() or hUnit:IsHexed() or hUnit:IsNightmared() or U.IsTaunted(hUnit)
 	    or hUnit:HasModifier("modifier_doom_bringer_doom") or hUnit:HasModifier('modifier_item_forcestaff_active')
 end
 
 function U.IsTaunted(hUnit)
-	return hUnit:HasModifier("modifier_axe_berserkers_call") 
-	    or hUnit:HasModifier("modifier_legion_commander_duel") 
-	    or hUnit:HasModifier("modifier_winter_wyvern_winters_curse") 
+	return hUnit:HasModifier("modifier_axe_berserkers_call")
+	    or hUnit:HasModifier("modifier_legion_commander_duel")
+	    or hUnit:HasModifier("modifier_winter_wyvern_winters_curse")
 		or hUnit:HasModifier(" modifier_winter_wyvern_winters_curse_aura");
 end
 
 function U.IsRetreating(hUnit)
-	return hUnit:GetActiveMode() == BOT_MODE_RETREAT 
-	   and hUnit:GetActiveModeDesire() >= BOT_MODE_DESIRE_HIGH 
+	return hUnit:GetActiveMode() == BOT_MODE_RETREAT
+	   and hUnit:GetActiveModeDesire() >= BOT_MODE_DESIRE_HIGH
 	   and U.IsEnemyNearLoc(hUnit:GetLocation(), 1000, 1.0) == true
 end
 
@@ -47,14 +47,14 @@ function U.IsDefending(hUnit)
 	local mode = hUnit:GetActiveMode();
 	return mode == BOT_MODE_DEFEND_TOWER_TOP or
 		   mode == BOT_MODE_DEFEND_TOWER_MID or
-		   mode == BOT_MODE_DEFEND_TOWER_BOT 
+		   mode == BOT_MODE_DEFEND_TOWER_BOT
 end
 
 function U.IsPushing(hUnit)
 	local mode = hUnit:GetActiveMode();
 	return mode == BOT_MODE_PUSH_TOWER_TOP or
 		   mode == BOT_MODE_PUSH_TOWER_MID or
-		   mode == BOT_MODE_PUSH_TOWER_BOT 
+		   mode == BOT_MODE_PUSH_TOWER_BOT
 end
 
 function U.IsGoingAfterSomeone(unit)
@@ -72,9 +72,9 @@ function U.HaveData(hUnit, sType)
 	elseif sType == 'ally' then
 		return #hUnit.data.allies > 0;
 	elseif sType == 'ecreep' then
-		return #hUnit.data.e_creeps > 0;	
+		return #hUnit.data.e_creeps > 0;
 	elseif sType == 'acreep' then
-		return #hUnit.data.a_creeps > 0;	
+		return #hUnit.data.a_creeps > 0;
 	end
 end
 
@@ -84,9 +84,9 @@ function U.GetDataCount(hUnit, sType)
 	elseif sType == 'ally' then
 		return #hUnit.data.allies;
 	elseif sType == 'ecreep' then
-		return #hUnit.data.e_creeps;	
+		return #hUnit.data.e_creeps;
 	elseif sType == 'acreep' then
-		return #hUnit.data.a_creeps;	
+		return #hUnit.data.a_creeps;
 	end
 end
 
@@ -95,15 +95,15 @@ function U.IsSuspiciousIllusion(hUnit)
 end
 
 function U.IsValidEntity(hUnit)
-	return hUnit ~= nil 
-	   and hUnit:IsNull() == false 	
-	   and hUnit:CanBeSeen() 
-	   and hUnit:IsAlive() 
-	   and hUnit:IsInvulnerable() == false; 
+	return hUnit ~= nil
+	   and hUnit:IsNull() == false
+	   and hUnit:CanBeSeen()
+	   and hUnit:IsAlive()
+	   and hUnit:IsInvulnerable() == false;
 end
 
 function U.IsValidHero(hUnit)
-	return U.IsValidEntity(hUnit) 
+	return U.IsValidEntity(hUnit)
 	   and hUnit:IsHero();
 end
 
@@ -130,46 +130,30 @@ function U.IsWithinRadius(hUnit, vLoc, nRadius)
 end
 
 function U.IsTaunted(hUnit)
-	return hUnit:HasModifier("modifier_axe_berserkers_call") 
-	    or hUnit:HasModifier("modifier_legion_commander_duel") 
-	    or hUnit:HasModifier("modifier_winter_wyvern_winters_curse") 
+	return hUnit:HasModifier("modifier_axe_berserkers_call")
+	    or hUnit:HasModifier("modifier_legion_commander_duel")
+	    or hUnit:HasModifier("modifier_winter_wyvern_winters_curse")
 		or hUnit:HasModifier("modifier_winter_wyvern_winters_curse_aura");
 end
 
 function U.IsAllyDisabled(hUnit)
-	return hUnit:IsRooted( ) 
-		or hUnit:IsStunned( ) 
-		or hUnit:IsHexed( ) 
-		or hUnit:IsNightmared() 
-		or hUnit:IsSilenced( ) 
+	return hUnit:IsRooted( )
+		or hUnit:IsStunned( )
+		or hUnit:IsHexed( )
+		or hUnit:IsNightmared()
+		or hUnit:IsSilenced( )
 		or U.IsTaunted(hUnit);
 end
 
 function U.IsEnemyDisabled(hUnit)
-	return hUnit:IsRooted( ) 
-		or hUnit:IsStunned( ) 
-		or hUnit:IsHexed( ) 
-		or hUnit:IsNightmared()  
+	return hUnit:IsRooted( )
+		or hUnit:IsStunned( )
+		or hUnit:IsHexed( )
+		or hUnit:IsNightmared()
 		or U.IsTaunted(hUnit);
 end
 
 function U.IsStuck(hUnit)
-	if hUnit.stuckLoc ~= nil and hUnit.stuckTime ~= nil then 
-		local attackTarget = hUnit:GetAttackTarget();
-		local EAd = GetUnitToUnitDistance(hUnit, GetAncient(opposing_team));
-		local TAd = GetUnitToUnitDistance(hUnit, GetAncient(team));
-		local Et  = hUnit:GetNearbyTowers(450, true);
-		local At  = hUnit:GetNearbyTowers(450, false);
-		if  hUnit:GetCurrentActionType() == BOT_ACTION_TYPE_MOVE_TO 
-			and attackTarget == nil 	
-			and EAd > 2200 and TAd > 2200 
-			and #Et == 0 and #At == 0  
-		    and DotaTime() > hUnit.stuckTime + 5.0 and GetUnitToLocationDistance(hUnit, hUnit.stuckLoc) < 25    
-		then
-			print(hUnit:GetUnitName().." is stuck")
-			return true;
-		end
-	end
 	return false
 end
 
@@ -209,7 +193,7 @@ function U.GetEnemyNearLoc(hUnit, vLoc, nRadius)
 	if U.HaveData(hUnit, 'enemy') then
 		for i=1, #hUnit.data.enemies do
 			local unit = hUnit.data.enemies[i];
-			if U.IsValidEntity(unit) and U.IsWithinRadius(unit, vLoc, nRadius) 
+			if U.IsValidEntity(unit) and U.IsWithinRadius(unit, vLoc, nRadius)
 			   and U.CanCastOnNonMagicImmune(unit)
 			then
 				return unit;
@@ -225,8 +209,8 @@ function U.GetWeakestEnemy(hUnit, nRadius)
 	if U.HaveData(hUnit, 'enemy') then
 		for i=1, #hUnit.data.enemies do
 			local unit = hUnit.data.enemies[i];
-			if U.IsValidEntity(unit) and U.IsInCastRange(hUnit, unit, nRadius) 
-			   and U.CanCastOnNonMagicImmune(unit) and unit:GetHealth() <= minHP 
+			if U.IsValidEntity(unit) and U.IsInCastRange(hUnit, unit, nRadius)
+			   and U.CanCastOnNonMagicImmune(unit) and unit:GetHealth() <= minHP
 			then
 				weakest = unit;
 				minHP = unit:GetHealth();
@@ -258,10 +242,10 @@ function U.GetWeakestAlly(hUnit, nRadius)
 	if U.HaveData(hUnit, 'ally') then
 		for i=1, #hUnit.data.allies do
 			local unit = hUnit.data.allies[i];
-			if U.IsValidEntity(unit) 
-			   and unit ~= hUnit	
-			   and U.IsInCastRange(hUnit, unit, nRadius) 
-			   and U.CanCastOnNonMagicImmune(unit) and unit:GetHealth() <= minHP 
+			if U.IsValidEntity(unit)
+			   and unit ~= hUnit
+			   and U.IsInCastRange(hUnit, unit, nRadius)
+			   and U.CanCastOnNonMagicImmune(unit) and unit:GetHealth() <= minHP
 			then
 				weakest = unit;
 				minHP = unit:GetHealth();
@@ -277,9 +261,9 @@ function U.GetClosestAlly(hUnit, hTarget, nRadius)
 	if U.HaveData(hUnit, 'ally') then
 		for i=1, #hUnit.data.allies do
 			local unit = hUnit.data.allies[i];
-			if U.IsValidEntity(unit) 
-			   and unit ~= hUnit	
-			   and U.IsInCastRange(hUnit, unit, nRadius) 
+			if U.IsValidEntity(unit)
+			   and unit ~= hUnit
+			   and U.IsInCastRange(hUnit, unit, nRadius)
 			   and U.CanCastOnNonMagicImmune(unit) and U.IsInCastRange(unit, hTarget, minDist)
 			then
 				closest = unit;
@@ -294,9 +278,9 @@ function U.GetDisabledAlly(hUnit, nRadius)
 	if U.HaveData(hUnit, 'ally') then
 		for i=1, #hUnit.data.allies do
 			local unit = hUnit.data.allies[i];
-			if U.IsValidEntity(unit) 
-			   and unit ~= hUnit	
-			   and U.IsInCastRange(hUnit, unit, nRadius) 
+			if U.IsValidEntity(unit)
+			   and unit ~= hUnit
+			   and U.IsInCastRange(hUnit, unit, nRadius)
 			   and U.CanCastOnNonMagicImmune(unit) and U.IsAllyDisabled(hUnit)
 			then
 				return unit;
@@ -338,14 +322,14 @@ function U.CanSpamSkill(hUnit, nManaCost)
 end
 
 function U.CanCastOnNonMagicImmune(hUnit)
-	return hUnit:IsMagicImmune() == false 
-	   and U.IsSuspiciousIllusion(hUnit) == false 
-	   and U.HasForbiddenModifier(hUnit) == false 
+	return hUnit:IsMagicImmune() == false
+	   and U.IsSuspiciousIllusion(hUnit) == false
+	   and U.HasForbiddenModifier(hUnit) == false
 end
 
 function U.CanCastOnMagicImmune(hUnit)
-	return U.IsSuspiciousIllusion(hUnit) == false 
-	   and U.HasForbiddenModifier(hUnit) == false 
+	return U.IsSuspiciousIllusion(hUnit) == false
+	   and U.HasForbiddenModifier(hUnit) == false
 end
 
 ----------------TEAM UTILITIES

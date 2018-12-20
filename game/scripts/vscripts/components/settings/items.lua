@@ -8,6 +8,7 @@ function ItemSelection:Init()
   self.prisonLocation = Entities:FindByName(nil, "player_prison"):GetAbsOrigin()
   self.abilitySelection = {}
 
+  CustomGameEventManager:RegisterListener('repeat_fight', partial(ItemSelection.RepeatFight, self))
   CustomGameEventManager:RegisterListener('done_shopping', partial(ItemSelection.DoneShopping, self))
   CustomGameEventManager:RegisterListener('reset', partial(ItemSelection.Reset, self))
 end
@@ -19,12 +20,12 @@ function ItemSelection:Reset (playerID, keys)
       return
     end
     hero:SetRespawnsDisabled(true)
-	
+
 	hero:ClearLastHitMultikill()
 	hero:ClearLastHitStreak()
 	hero:ClearStreak()
 	PlayerResource:ClearKillsMatrix(playerID)
-	
+
     if hero:IsAlive() then
       hero:Kill(nil, hero)
     end
@@ -62,7 +63,7 @@ function ItemSelection:DoneShopping (playerID, keys)
       UTIL_Remove(item)
     end
   end
-  
+
   local skillTable = {}
   for i = 0, 23 do
     local ability = hero:GetAbilityByIndex(i)
@@ -83,22 +84,28 @@ function ItemSelection:DoneShopping (playerID, keys)
   if self.state.isSelecting == 'radiant' then
     self.state.radiant = items
     self.state.isSelecting = 'dire'
-	self:AssignAbilitySelectionToTeam( DOTA_TEAM_GOODGUYS, skillTable)
+    self:AssignAbilitySelectionToTeam( DOTA_TEAM_GOODGUYS, skillTable)
     self:EnableHero(self.selection.dire)
   end
 
   CustomNetTables:SetTableValue( 'hero_selection', 'items', self.state)
 end
 
+function ItemSelection:RepeatFight ()
+  BotController:SetTeams(self.selection, self.state)
+end
+
 function ItemSelection:EnableHero (heroName)
   DebugPrint('Replacing the hero so they can select items! ' .. heroName)
   local oldHero = PlayerResource:GetSelectedHeroEntity(self.selection.playerID)
 
-  for i = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_9 do
-    local item = oldHero:GetItemInSlot(i)
-    if item and not item:IsNull() then
-      oldHero:RemoveItem(item)
-      UTIL_Remove(item)
+  if oldHero then
+    for i = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_9 do
+      local item = oldHero:GetItemInSlot(i)
+      if item and not item:IsNull() then
+        oldHero:RemoveItem(item)
+        UTIL_Remove(item)
+      end
     end
   end
 
@@ -106,10 +113,16 @@ function ItemSelection:EnableHero (heroName)
   HudTimer:SetGameTime(0)
   self:CacheHeroForPlayer(heroName, self.selection.playerID, function (hero)
     hero:RespawnHero(false, false)
-    PlayerResource:ModifyGold(self.selection.playerID, 99999, true, DOTA_ModifyGold_RoshanKill)
+    local goldAmount = 1000
+    if self.selection.level >= 25 then
+      goldAmount = 20000
+    elseif self.selection.level >= 15 then
+      goldAmount = 10000
+    end
+    PlayerResource:SetGold(self.selection.playerID, goldAmount, true)
     self:LevelUpHero(hero)
 
-    for i = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_6 do
+    for i = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_9 do
       local item = hero:GetItemInSlot(i)
       if item and not item:IsNull() then
         hero:RemoveItem(item)

@@ -7,8 +7,8 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
@@ -41,7 +41,7 @@ function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
 	-- Check if we're already using an ability
-	
+
 	if abilityFB == nil then abilityFB = npcBot:GetAbilityByName( "keeper_of_the_light_mana_leak" ) end
 	if abilityCS == nil then abilityCS = npcBot:GetAbilityByName( "keeper_of_the_light_illuminate" ) end
 	if abilityCSS == nil then abilityCSS = npcBot:GetAbilityByName( "keeper_of_the_light_spirit_form_illuminate" ) end
@@ -49,14 +49,14 @@ function AbilityUsageThink()
 	if abilityBL == nil then abilityBL = npcBot:GetAbilityByName( "keeper_of_the_light_chakra_magic" ) end
 	if abilityFG == nil then abilityFG = npcBot:GetAbilityByName( "keeper_of_the_light_spirit_form" ) end
 	if abilityRC == nil then abilityRC = npcBot:GetAbilityByName( "keeper_of_the_light_recall" ) end
-	
+
 	CancelIlmDesire = ConsiderCancelIlm();
-	
+
 	if CancelIlmDesire > 0 then
 		--npcBot:Action_MoveToLocation(npcBot:GetLocation()+RandomVector(200))
 		--return
 	end
-	
+
 	if mutil.CanNotUseAbility(npcBot)  or npcBot:NumQueuedActions() > 0  then return end
 
 	-- Consider using each ability
@@ -67,60 +67,60 @@ function AbilityUsageThink()
 	castBLDesire, castBLTarget = ConsiderBloodlust();
 	castFGDesire, castFGTarget = ConsiderFleshGolem();
 	castRCDesire, castRCTarget = ConsiderRecall();
-	
-	if ( castFGDesire > 0 ) 
+
+	if ( castFGDesire > 0 )
 	then
-		
+
 		npcBot:Action_UseAbility( abilityFG );
 		return;
 	end
-	
-	if ( castCS2Desire > 0 ) 
+
+	if ( castCS2Desire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilityCS2, castCS2Location );
 		return;
-	end	
-	
-	if ( castFBDesire > 0 ) 
+	end
+
+	if ( castFBDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityFB, castFBTarget );
 		return;
 	end
-	
-	if ( castCSDesire > 0 ) 
+
+	if ( castCSDesire > 0 )
 	then
-		npcBot:Action_ClearActions( true ); 
+		npcBot:Action_ClearActions( true );
 		npcBot:ActionQueue_UseAbilityOnLocation( abilityCS, castCSLocation );
 		npcBot:ActionQueue_Delay( 0.5 );
 		return;
-	end	
-	if ( castCSSDesire > 0 ) 
+	end
+	if ( castCSSDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilityCSS, castCSSLocation );
 		return;
-	end	
-	
-	if ( castBLDesire > 0 ) 
+	end
+
+	if ( castBLDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityBL, castBLTarget );
 		return;
 	end
-	
-	if ( castRCDesire > 0 ) 
+
+	if ( castRCDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityRC, castRCTarget );
 		return;
 	end
-	
-	
-	
+
+
+
 end
 
 
 function ConsiderFireblast()
 
 	-- Make sure it's castable
-	if ( not abilityFB:IsFullyCastable() ) then 
+	if ( not abilityFB:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -136,7 +136,7 @@ function ConsiderFireblast()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 			then
 				return BOT_ACTION_DESIRE_HIGH, npcEnemy;
 			end
@@ -152,7 +152,7 @@ function ConsiderFireblast()
 			return BOT_ACTION_DESIRE_HIGH, npcTarget;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 
 end
@@ -161,8 +161,8 @@ end
 function ConsiderChrono()
 
 	-- Make sure it's castable
-	if ( npcBot:HasScepter() or npcBot:HasModifier("modifier_keeper_of_the_light_spirit_form") or not abilityCS:IsFullyCastable() ) 
-	then 
+	if ( npcBot:HasScepter() or npcBot:HasModifier("modifier_keeper_of_the_light_spirit_form") or not abilityCS:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -170,7 +170,7 @@ function ConsiderChrono()
 	local nRadius = abilityCS:GetSpecialValueInt("radius");
 	local nCastRange = abilityCS:GetCastRange();
 	local nCastPoint = abilityCS:GetCastPoint();
-	
+
 	if nCastRange > 1600 then
 		nCastRange = 1600;
 	end
@@ -180,21 +180,21 @@ function ConsiderChrono()
 	then
 		local lanecreeps = npcBot:GetNearbyLaneCreeps(1600, true);
 		local locationAoE = npcBot:FindAoELocation( true, false, npcBot:GetLocation(), nCastRange, nRadius/2, 0, 0 );
-		if ( locationAoE.count >= 4 and #lanecreeps >= 4 ) 
+		if ( locationAoE.count >= 4 and #lanecreeps >= 4 )
 		then
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local locationAoE = npcBot:FindAoELocation( true, true, npcBot:GetLocation(), nCastRange, nRadius/2, 0, 0 );
-		if ( locationAoE.count >= 2 ) 
+		if ( locationAoE.count >= 2 )
 		then
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
@@ -203,12 +203,12 @@ function ConsiderChrono()
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetExtrapolatedLocation(nCastPoint);
 		end
 	end
-		
+
 	local skThere, skLoc = mutil.IsSandKingThere(npcBot, nCastRange, 2.0);
-	
+
 	if skThere then
 		return BOT_ACTION_DESIRE_MODERATE, skLoc;
-	end	
+	end
 
 	return BOT_ACTION_DESIRE_NONE;
 end
@@ -217,8 +217,8 @@ end
 function ConsiderChronoS()
 
 	-- Make sure it's castable
-	if ( not abilityCSS:IsFullyCastable() or abilityCSS:IsHidden() ) 
-	then 
+	if ( not abilityCSS:IsFullyCastable() or abilityCSS:IsHidden() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -230,9 +230,9 @@ function ConsiderChronoS()
 	if nCastRange > 1600 then
 		nCastRange = 1600;
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
-	if mutil.IsRetreating(npcBot) and ( npcBot:HasModifier("modifier_keeper_of_the_light_spirit_form") or npcBot:HasScepter() ) 
+	if mutil.IsRetreating(npcBot) and ( npcBot:HasModifier("modifier_keeper_of_the_light_spirit_form") or npcBot:HasScepter() )
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
@@ -243,27 +243,27 @@ function ConsiderChronoS()
 			end
 		end
 	end
-	
+
 	-- If we're pushing or defending a lane and can hit 4+ creeps, go for it
 	if mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot)
 	then
 		local lanecreeps = npcBot:GetNearbyLaneCreeps(1600, true);
 		local locationAoE = npcBot:FindAoELocation( true, false, npcBot:GetLocation(), nCastRange, nRadius/2, 0, 0 );
-		if ( locationAoE.count >= 4 and #lanecreeps >= 4 ) 
+		if ( locationAoE.count >= 4 and #lanecreeps >= 4 )
 		then
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local locationAoE = npcBot:FindAoELocation( true, true, npcBot:GetLocation(), nCastRange, nRadius/2, 0, 0 );
-		if ( locationAoE.count >= 2 ) 
+		if ( locationAoE.count >= 2 )
 		then
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
@@ -272,62 +272,62 @@ function ConsiderChronoS()
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetExtrapolatedLocation(nCastPoint);
 		end
 	end
-	
+
 	local skThere, skLoc = mutil.IsSandKingThere(npcBot, nCastRange, 2.0);
-	
+
 	if skThere then
 		return BOT_ACTION_DESIRE_MODERATE, skLoc;
-	end	
-	
+	end
+
 	return BOT_ACTION_DESIRE_NONE;
 end
 
 function ConsiderBloodlust()
 
 	-- Make sure it's castable
-	if ( not abilityBL:IsFullyCastable() ) then 
+	if ( not abilityBL:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	local nCastRange = abilityBL:GetCastRange();
-	
+
 	if  npcBot:GetMana() / npcBot:GetMaxMana() < 0.75 then
 		return BOT_ACTION_DESIRE_MODERATE, npcBot;
 	else
 		local tableNearbyFriendlyHeroes = npcBot:GetNearbyHeroes( 1200, false, BOT_MODE_NONE );
 		for _,myFriend in pairs(tableNearbyFriendlyHeroes) do
-			if ( mutil.CanCastOnNonMagicImmune(myFriend) and myFriend:GetMana() / myFriend:GetMaxMana() < 0.65  ) 
+			if ( mutil.CanCastOnNonMagicImmune(myFriend) and myFriend:GetMana() / myFriend:GetMaxMana() < 0.65  )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, myFriend;
 			end
-		end	
+		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 end
 
 function ConsiderFleshGolem()
 
 	-- Make sure it's castable
-	if ( npcBot:HasScepter() or npcBot:HasModifier("modifier_keeper_of_the_light_spirit_form") or not abilityFG:IsFullyCastable() ) then 
+	if ( npcBot:HasScepter() or npcBot:HasModifier("modifier_keeper_of_the_light_spirit_form") or not abilityFG:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local nRadius = 1000;
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
 			then
 				return BOT_ACTION_DESIRE_HIGH;
 			end
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE  );
@@ -336,8 +336,8 @@ function ConsiderFleshGolem()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
-	
+
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -347,7 +347,7 @@ function ConsiderFleshGolem()
 			return BOT_ACTION_DESIRE_HIGH;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
 end
 
@@ -355,8 +355,8 @@ end
 function ConsiderChrono2()
 
 	-- Make sure it's castable
-	if ( not npcBot:HasModifier("modifier_keeper_of_the_light_spirit_form") or abilityCS2:IsHidden() or not abilityCS2:IsFullyCastable() ) 
-	then 
+	if ( not npcBot:HasModifier("modifier_keeper_of_the_light_spirit_form") or abilityCS2:IsHidden() or not abilityCS2:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -381,7 +381,7 @@ function ConsiderChrono2()
 			end
 		end
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
@@ -390,7 +390,7 @@ function ConsiderChrono2()
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetExtrapolatedLocation(nCastPoint);
 		end
 	end
-	
+
 --
 	return BOT_ACTION_DESIRE_NONE;
 end
@@ -399,8 +399,8 @@ end
 function ConsiderRecall()
 
 	-- Make sure it's castable
-	if ( not npcBot:HasModifier("modifier_keeper_of_the_light_spirit_form") or abilityRC:IsHidden() or not abilityRC:IsFullyCastable() ) 
-	then 
+	if ( not npcBot:HasModifier("modifier_keeper_of_the_light_spirit_form") or abilityRC:IsHidden() or not abilityRC:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -416,34 +416,10 @@ function ConsiderRecall()
 				end
 		end
 	end
-	
-	if  mutil.IsDefending(npcBot)
-	then
-		local nearbyTower = npcBot:GetNearbyTowers(1000, false) 
-		if nearbyTower[1] ~= nil then
-			local maxDist = 0;
-			local target = nil;
-			for i = 1, #numPlayer
-			do
-				local player = GetTeamMember(i);
-				if player ~= nil and player:IsAlive() and player:GetActiveMode() ~= BOT_MODE_RETREAT then
-					local dist = GetUnitToUnitDistance(nearbyTower[1], player);
-					local health = player:GetHealth()/player:GetMaxHealth();
-					if IsPlayerBot(player:GetPlayerID()) and dist > maxDist and dist > 2500 and health >= 0.25 then
-						maxDist = dist;
-						target = GetTeamMember(i);
-					end
-				end
-			end
-			if target ~= nil then
-				return BOT_ACTION_DESIRE_MODERATE, target;
-			end
-		end
-	end
-	
+
 	if mutil.IsPushing(npcBot)
 	then
-		local nearbyTower = npcBot:GetNearbyTowers(1000, true) 
+		local nearbyTower = npcBot:GetNearbyTowers(1000, true)
 		if nearbyTower[1] ~= nil then
 			local maxDist = 0;
 			local target = nil;
@@ -464,12 +440,12 @@ function ConsiderRecall()
 			end
 		end
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( npcTarget ~= nil  and npcTarget:IsHero() and GetUnitToUnitDistance( npcTarget, npcBot ) < 1000  ) 
-		then	
+		if ( npcTarget ~= nil  and npcTarget:IsHero() and GetUnitToUnitDistance( npcTarget, npcBot ) < 1000  )
+		then
 			local maxDist = 0;
 			local target = nil;
 			for i = 1, #numPlayer
@@ -489,7 +465,7 @@ function ConsiderRecall()
 			end
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 
 end
@@ -497,13 +473,13 @@ end
 function ConsiderCancelIlm()
 
 	if not npcBot:IsChanneling() or not npcBot:HasModifier('modifier_keeper_of_the_light_illuminate')  then return BOT_MODE_NONE; end
-	
+
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1300, true, BOT_MODE_NONE );
-	
+
 	if tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes >= 1 and npcBot:WasRecentlyDamagedByAnyHero(2.0) then
 		return BOT_ACTION_DESIRE_HIGH;
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
-	
+
 end

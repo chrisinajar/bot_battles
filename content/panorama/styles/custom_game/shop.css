@@ -1,13 +1,26 @@
-.ShopOptions {
-  background-color: gradient( linear, 0% 0%, 0% 100%, from( #404D65ff ), to( #252525ee ) );
+.ShopWrapper {
   horizontal-align: center;
   margin-top: 40px;
-  flow-children: down;
-  padding: 0px 20px 10px;
+  padding-bottom: 200px;
+}
+.ShopWrapper.autohide {
+  margin-top: -100px;
+}
+.ShopWrapper.hover, .ShopWrapper.autohide.hover {
+  margin-top: 40px;
 }
 
-.ShopOptions.hidden {
+.ShopWrapper.hidden {
   transform: translateY(-100%);
+}
+.ShopOptions {
+  background-color: gradient( linear, 0% 0%, 0% 100%, from( #404D65ff ), to( #252525ee ) );
+  padding: 0px 20px 10px;
+  flow-children: down;
+}
+
+.ShopOptions .hidden {
+  visibility: collapse;
 }
 
 .ShopOptions Label {

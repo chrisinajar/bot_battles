@@ -13,7 +13,7 @@ function ItemSelection:Init()
   CustomGameEventManager:RegisterListener('reset', partial(ItemSelection.Reset, self))
 end
 
-function ItemSelection:Reset (playerID, keys)
+function ItemSelection:ResetHeroes ()
   local function killHero (playerID)
     local hero = PlayerResource:GetSelectedHeroEntity(playerID)
     if not hero then
@@ -21,22 +21,29 @@ function ItemSelection:Reset (playerID, keys)
     end
     hero:SetRespawnsDisabled(true)
 
-	hero:ClearLastHitMultikill()
-	hero:ClearLastHitStreak()
-	hero:ClearStreak()
-	PlayerResource:ClearKillsMatrix(playerID)
+    hero:ClearLastHitMultikill()
+    hero:ClearLastHitStreak()
+    hero:ClearStreak()
+    PlayerResource:ClearKillsMatrix(playerID)
 
     if hero:IsAlive() then
       hero:Kill(nil, hero)
     end
   end
   each(killHero, PlayerResource:GetAllTeamPlayerIDs())
+  GridNav:RegrowAllTrees()
+  GameRules:SetTimeOfDay(0)
+end
+
+function ItemSelection:Reset (playerID, keys)
+  self:ResetHeroes()
 
   self.state = {
     isSelecting = false,
     radiant = {},
     dire = {}
   }
+  self.abilitySelection = {}
   CustomNetTables:SetTableValue( 'hero_selection', 'items', self.state)
 end
 
@@ -45,10 +52,15 @@ function ItemSelection:ChooseItems (selection)
 
   DebugPrint('Starting choose items flow!')
   self.selection = selection
-  self.state.isSelecting = 'radiant'
+  self.state = {
+    isSelecting = 'radiant',
+    radiant = {},
+    dire = {}
+  }
   CustomNetTables:SetTableValue( 'hero_selection', 'items', self.state)
 
-  self:EnableHero(self.selection.radiant)
+  local index = #self.state.radiant + 1
+  self:EnableHero(self.selection.radiant[index])
 end
 
 function ItemSelection:DoneShopping (playerID, keys)
@@ -67,31 +79,44 @@ function ItemSelection:DoneShopping (playerID, keys)
   local skillTable = {}
   for i = 0, 23 do
     local ability = hero:GetAbilityByIndex(i)
-	if ability and ability:GetLevel() > 0 then
-	  skillTable[ability:GetName()] = ability:GetLevel()
-	end
+    if ability and ability:GetLevel() > 0 then
+      skillTable[ability:GetName()] = ability:GetLevel()
+    end
   end
 
+  self:AssignAbilitySelectionToHero(hero:GetName(), skillTable)
+
   if self.state.isSelecting == 'dire' then
-    self.state.isSelecting = false
-    self.state.dire = items
-    DebugPrint('All done calculating items!')
-    hero:SetRespawnsDisabled(true)
-    FindClearSpaceForUnit(hero, self.prisonLocation, true)
-    self:AssignAbilitySelectionToTeam( DOTA_TEAM_BADGUYS, skillTable)
-    BotController:SetTeams(self.selection, self.state)
+    table.insert(self.state.dire, items)
+    local index = #self.state.dire + 1
+
+    if index > self.selection.heroCount then
+      self.state.isSelecting = false
+      DebugPrint('All done calculating items!')
+      hero:SetRespawnsDisabled(true)
+      FindClearSpaceForUnit(hero, self.prisonLocation, true)
+      BotController:SetTeams(self.selection, self.state)
+    else
+      self:EnableHero(self.selection.dire[index])
+    end
   end
   if self.state.isSelecting == 'radiant' then
-    self.state.radiant = items
-    self.state.isSelecting = 'dire'
-    self:AssignAbilitySelectionToTeam( DOTA_TEAM_GOODGUYS, skillTable)
-    self:EnableHero(self.selection.dire)
+    table.insert(self.state.radiant, items)
+    local index = #self.state.radiant + 1
+
+    if index > self.selection.heroCount then
+      self.state.isSelecting = 'dire'
+      self:EnableHero(self.selection.dire[1])
+    else
+      self:EnableHero(self.selection.radiant[index])
+    end
   end
 
   CustomNetTables:SetTableValue( 'hero_selection', 'items', self.state)
 end
 
 function ItemSelection:RepeatFight ()
+  self:ResetHeroes()
   BotController:SetTeams(self.selection, self.state)
 end
 
@@ -176,10 +201,10 @@ function ItemSelection:LevelUpHero(hero)
   end)
 end
 
-function ItemSelection:AssignAbilitySelectionToTeam( teamID, skillTable )
-  self.abilitySelection[teamID] = skillTable
+function ItemSelection:AssignAbilitySelectionToHero( heroName, skillTable )
+  self.abilitySelection[heroName] = skillTable
 end
 
-function ItemSelection:GetAbilitySelectionToTeam( teamID )
-  return self.abilitySelection[teamID]
+function ItemSelection:GetAbilitySelectionForHero( heroName )
+  return self.abilitySelection[heroName]
 end

@@ -16,6 +16,7 @@ function Heroes:Init()
 
   self:Reset()
 
+  CustomGameEventManager:RegisterListener('set_hero_count', partial(Heroes.SetHeroCount, self))
   CustomGameEventManager:RegisterListener('hero_selected', partial(Heroes.HeroSelected, self))
   CustomGameEventManager:RegisterListener('level_up', partial(Heroes.LevelUp, self))
   CustomGameEventManager:RegisterListener('level_down', partial(Heroes.LevelDown, self))
@@ -42,11 +43,18 @@ function Heroes:OnHeroKilled(keys)
   end
 end
 
+function Heroes:SetHeroCount (playerID, keys)
+  self:Reset()
+  self.selection.heroCount = keys.heroCount
+  CustomNetTables:SetTableValue( 'hero_selection', 'selection', self.selection)
+end
+
 function Heroes:Reset (playerID, keys)
   self.selection = {
     isSelecting = true,
-    radiant = false,
-    dire = false,
+    heroCount = 1,
+    radiant = {},
+    dire = {},
     level = 5,
     direKills = 0,
     radiantKills = 0,
@@ -59,7 +67,7 @@ function Heroes:StartGame (playerID, keys)
 
   DebugPrint('Player: ' .. self.selection.playerID .. ' is on team ' .. PlayerResource:GetTeam(self.selection.playerID))
 
-  if self.selection.radiant and self.selection.dire then
+  if #self.selection.radiant == self.selection.heroCount and #self.selection.dire == self.selection.heroCount then
     DebugPrint('Starting game...')
     self.selection.isSelecting = false
     CustomNetTables:SetTableValue( 'hero_selection', 'selection', self.selection)
@@ -72,10 +80,21 @@ function Heroes:HeroSelected (playerID, keys)
   DebugPrintTable(keys)
 
   if keys.radiant then
-    self.selection.radiant = keys.radiant
+    if #self.selection.radiant >= self.selection.heroCount then
+      self.selection.radiant = {}
+    end
+    table.insert(self.selection.radiant, keys.radiant)
   end
   if keys.dire then
-    self.selection.dire = keys.dire or false
+    print('setting dire ' .. tostring(keys.dire))
+    table.insert(self.selection.dire, keys.dire)
+  end
+
+  if not self.selection.dire[1] then
+    self.selection.dire = {}
+  end
+  if not self.selection.radiant[1] then
+    self.selection.radiant = {}
   end
 
   CustomNetTables:SetTableValue( 'hero_selection', 'selection', self.selection)

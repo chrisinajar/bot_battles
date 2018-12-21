@@ -46,6 +46,14 @@
     </Panel>
     <!-- END SPLIT CONFIG -->
     <!-- HERO PANEL -->
+    <Panel id="ModeOptions">
+      <Panel id="OneVOne" onactivate="SetHeroCount(1)">
+        <Label text="1v1" />
+      </Panel>
+      <Panel id="TwoVTwo" onactivate="SetHeroCount(2)">
+        <Label text="2v2" />
+      </Panel>
+    </Panel>
     <Panel id="StartButton" onactivate="StartGame()">
       <Label text="START" />
     </Panel>

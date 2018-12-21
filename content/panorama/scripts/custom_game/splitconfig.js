@@ -13,10 +13,7 @@ var currentSelection = null;
 
 function selectHero (heroname) {
   $.Msg(currentSelection + ' ' + heroname);
-  var data = {
-    dire: direHero,
-    radiant: radiantHero
-  };
+  var data = {};
   if (currentSelection === 'radiant') {
     data.radiant = heroname;
   } else {
@@ -48,9 +45,13 @@ function updateExpandedHeroes (table, key, data) {
   $.Msg('hero selection reading in!');
   $.Msg(data);
 
-  if (!data.radiant) {
+  var dires = tableToArray(data.dire);
+  var radiants = tableToArray(data.radiant);
+  var heroCount = data.heroCount;
+
+  if (radiants.length < heroCount) {
     HeroSelectEvent('radiant');
-  } else if (!data.dire) {
+  } else if (dires.length < heroCount) {
     HeroSelectEvent('dire');
   } else if (!currentSelection) {
     FindDotaHudElement('RightHeroPanel').RemoveClass('active');
@@ -58,19 +59,19 @@ function updateExpandedHeroes (table, key, data) {
   }
   var preview = null;
 
-  if (radiantHero !== data.radiant) {
-    radiantHero = data.radiant;
+  if (radiantHero !== data.radiant[1]) {
+    radiantHero = data.radiant[1];
     preview = FindDotaHudElement('LeftHeroPanel');
     preview.RemoveAndDeleteChildren();
-    CreateHeroPanel(preview, data.radiant);
-    $('#LeftHeroName').text = $.Localize('#' + data.radiant, $('#LeftHeroName'));
+    CreateHeroPanel(preview, data.radiant[1]);
+    $('#LeftHeroName').text = $.Localize('#' + data.radiant[1], $('#LeftHeroName'));
   }
-  if (direHero !== data.dire) {
-    direHero = data.dire;
+  if (direHero !== data.dire[1]) {
+    direHero = data.dire[1];
     preview = FindDotaHudElement('RightHeroPanel');
     preview.RemoveAndDeleteChildren();
-    CreateHeroPanel(preview, data.dire);
-    $('#RightHeroName').text = $.Localize('#' + data.dire, $('#RightHeroName'));
+    CreateHeroPanel(preview, data.dire[1]);
+    $('#RightHeroName').text = $.Localize('#' + data.dire[1], $('#RightHeroName'));
   }
 }
 
@@ -84,4 +85,18 @@ function CreateHeroPanel (parent, hero) {
   $.DispatchEvent('DOTAGlobalSceneSetCameraEntity', id, 'camera_end_top', 1.0);
 
   return scene;
+}
+
+function tableToArray (table) {
+  var arr = [];
+  Object.keys(table).sort().forEach(function (key) {
+    arr.push(table[key]);
+  });
+  return arr;
+}
+
+function SetHeroCount (count) {
+  GameEvents.SendCustomGameEventToServer('set_hero_count', {
+    heroCount: count
+  });
 }

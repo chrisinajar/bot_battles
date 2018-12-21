@@ -72,7 +72,8 @@ function BotController:SetTeams (selection, items)
     if botID == selection.playerID then
       return
     end
-    ItemSelection:CacheHeroForPlayer(self.selection[team], botID, function (hero)
+    print(botID)
+    ItemSelection:CacheHeroForPlayer(self.selection[team][(((botID - 1) % 5) % self.selection.heroCount) + 1], botID, function (hero)
       BotController:InitBot(hero, team)
     end)
   end
@@ -94,7 +95,15 @@ function BotController:InitBot (hero, team)
     end
   end
 
-  for _,itemName in ipairs(self.items[team]) do
+  local heroIndex = 0
+  local myHeroName = hero:GetName()
+  for index,heroName in ipairs(self.selection[team]) do
+    if heroName == myHeroName then
+      heroIndex = index
+    end
+  end
+
+  for _,itemName in ipairs(self.items[team][heroIndex]) do
     hero:AddItemByName(itemName)
   end
   hero:SetAbilityPoints(0)
@@ -102,7 +111,7 @@ function BotController:InitBot (hero, team)
   hero:SetHealth(hero:GetMaxHealth())
   hero:SetMana(hero:GetMaxMana())
 
-  local skillSelection = ItemSelection:GetAbilitySelectionToTeam( hero:GetTeamNumber() )
+  local skillSelection = ItemSelection:GetAbilitySelectionForHero(hero:GetName())
   Timers:CreateTimer(0.1, function()
     for i = 0, 23 do
       local ability = hero:GetAbilityByIndex(i)

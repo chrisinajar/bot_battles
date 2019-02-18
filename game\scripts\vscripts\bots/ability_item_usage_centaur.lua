@@ -6,8 +6,8 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
@@ -40,21 +40,20 @@ function AbilityUsageThink()
 	castHSDesire = ConsiderHoofStomp();
 	castDEDesire, castDETarget = ConsiderDoubleEdge();
 	castSTDesire = ConsiderStampede();
-	
 
-	if ( castSTDesire > castHSDesire and castSTDesire > castDEDesire ) 
+	if ( castSTDesire > castHSDesire and castSTDesire > castDEDesire )
 	then
 		npcBot:Action_UseAbility( abilityST );
 		return;
 	end
 
-	if ( castHSDesire > 0 ) 
+	if ( castHSDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityHS );
 		return;
 	end
-	
-	if ( castDEDesire > 0 ) 
+
+	if ( castDEDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityDE, castDETarget );
 		return;
@@ -66,7 +65,7 @@ end
 function ConsiderHoofStomp()
 
 	-- Make sure it's castable
-	if ( not abilityHS:IsFullyCastable() ) then 
+	if ( not abilityHS:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -82,13 +81,13 @@ function ConsiderHoofStomp()
 
 	-- If a mode has set a target, and we can kill them, do it
 	local npcTarget = npcBot:GetTarget();
-	if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.CanKillTarget(npcTarget, nDamage, DAMAGE_TYPE_MAGICAL) and 
-	   mutil.IsInRange(npcTarget, npcBot, nRadius - 100) 
-	then   
+	if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.CanKillTarget(npcTarget, nDamage, DAMAGE_TYPE_MAGICAL) and
+	   mutil.IsInRange(npcTarget, npcBot, nRadius - 100)
+	then
 		return BOT_ACTION_DESIRE_MODERATE;
 	end
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nRadius)  )
@@ -96,14 +95,14 @@ function ConsiderHoofStomp()
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 			then
 				return BOT_ACTION_DESIRE_HIGH;
 			end
@@ -113,9 +112,9 @@ function ConsiderHoofStomp()
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
-		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and 
+		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and
 	       mutil.IsInRange(npcTarget, npcBot, nRadius - 100) and not mutil.IsDisabled(true, npcTarget)
-		then   
+		then
 			return BOT_ACTION_DESIRE_HIGH;
 		end
 	end
@@ -126,26 +125,26 @@ end
 
 
 function ConsiderDoubleEdge()
-	
+
 	-- Make sure it's castable
-	if ( not abilityDE:IsFullyCastable() ) then 
+	if ( not abilityDE:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	-- Get some of its values
 	local nCastRange = abilityDE:GetCastRange();
 	local nDamage = abilityDE:GetSpecialValueInt( "edge_damage" );
 	local nRadius = abilityDE:GetSpecialValueInt( "radius" );
-	
+
 	-- If a mode has set a target, and we can kill them, do it
 	local npcTarget = npcBot:GetTarget();
-	if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.CanKillTarget(npcTarget, nDamage, DAMAGE_TYPE_MAGICAL) and 
-	   mutil.IsInRange(npcTarget, npcBot, nCastRange + 100) 
+	if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.CanKillTarget(npcTarget, nDamage, DAMAGE_TYPE_MAGICAL) and
+	   mutil.IsInRange(npcTarget, npcBot, nCastRange + 100)
 	then
 		return BOT_ACTION_DESIRE_MODERATE, npcTarget;
 	end
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange)  )
@@ -153,13 +152,13 @@ function ConsiderDoubleEdge()
 			return BOT_ACTION_DESIRE_LOW, npcTarget;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
-		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and 
-	       mutil.IsInRange(npcTarget, npcBot, nCastRange + 100) 
-		then   
+		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and
+	       mutil.IsInRange(npcTarget, npcBot, nCastRange + 100)
+		then
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget;
 		end
 	end
@@ -171,15 +170,15 @@ end
 function ConsiderStampede()
 
 	-- Make sure it's castable
-	if ( not abilityST:IsFullyCastable() ) then 
+	if ( not abilityST:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 800, true, BOT_MODE_NONE );
-		if ( tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes >= 1 ) 
+		if ( tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes >= 1 )
 		then
 			return BOT_ACTION_DESIRE_HIGH;
 		end
@@ -189,11 +188,11 @@ function ConsiderStampede()
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 600) 
+		if mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 600)
 		then
 			return BOT_ACTION_DESIRE_HIGH;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
 end

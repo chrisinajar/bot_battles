@@ -1,5 +1,6 @@
 local BotsInit = require( "game/botsinit" );
 local MyModule = BotsInit.CreateGeneric();
+local Data = require(GetScriptDirectory() ..  "/ability_item_data")
 
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
@@ -86,12 +87,68 @@ end
 
 function ItemUsageThink()
   --print(bot:GetUnitName().."item usage")
-  if GetGameState()~=GAME_STATE_PRE_GAME and GetGameState()~= GAME_STATE_GAME_IN_PROGRESS then
+  if GetGameState() ~= GAME_STATE_PRE_GAME and GetGameState() ~= GAME_STATE_GAME_IN_PROGRESS then
     return;
   end
 
   UnImplementedItemUsage()
   --UseShrine()
+end
+
+function AbilityUsageThink()
+  if GetGameState() ~= GAME_STATE_PRE_GAME and GetGameState() ~= GAME_STATE_GAME_IN_PROGRESS then
+    return;
+  end
+
+  local bot = GetBot()
+  mutil.IsGoingOnSomeone(bot) -- setup targets if needed
+  local name = bot:GetUnitName()
+  local shortName = name:sub(15, -1)
+  local enemies = bot:GetNearbyHeroes(1600, true, BOT_MODE_NONE )
+  local enemy = bot:GetTarget()
+  local didAct = false
+  local couldAct = false
+  if not enemy then
+    enemy = enemies[1]
+  end
+
+  if #enemies == 0 then
+    return
+  end
+
+  for abilityIndex = 0, 8 do
+    local ability = bot:GetAbilityInSlot(abilityIndex)
+    if not didAct and ability then
+      local abilityName = ability:GetName()
+      if not ability:IsHidden() and not ability:IsPassive() and not ability:IsTalent() and ability:IsFullyCastable() and ability:GetName():sub(0, #shortName) == shortName then
+        local modifier = Data[abilityName]
+        local behave = ability:GetBehavior()
+        if modifier ~= false then
+          modifier = modifier or "none"
+          if ability:GetCastRange() == 0 and bit.band(behave, 4) == 4 and not bot:HasModifier(modifier) then
+            CheckAndUseAbility(ability, modifier, nil, true)
+          end
+          if enemy then
+            print(ability:GetName() .. ' ' .. ability:GetCastRange() .. ability:GetTargetTeam())
+            didAct, couldAct = CheckAndUseAbility(ability, modifier, enemy, true)
+          end
+        end
+      end
+    end
+  end
+
+  if couldAct then
+    -- last, change targets
+    local targets = bot:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
+    if #targets < 1 then
+      return
+    end
+    local newTarget = targets[RandomInt(1, #targets)]
+    bot:SetTarget(newTarget)
+  end
+
+  bot:Action_ClearActions(false)
+  bot:ActionQueue_AttackUnit(enemy, true)
 end
 
 function PrintCourierState(state)
@@ -760,14 +817,16 @@ function UnImplementedItemUsage()
   local didAct = false
   local couldAct = false
 
-  for itemName, modifier in pairs(itemTable) do
-    local tempCouldAct
-    didAct, tempCouldAct = CheckAndUseItem(itemName, modifier, npcTarget, false)
-    if didAct then
-      return
-    end
-    if tempCouldAct then
-      couldAct = true
+  if npcTarget then
+    for itemName, modifier in pairs(itemTable) do
+      local tempCouldAct
+      didAct, tempCouldAct = CheckAndUseItem(itemName, modifier, npcTarget, false)
+      if didAct then
+        return
+      end
+      if tempCouldAct then
+        couldAct = true
+      end
     end
   end
 
@@ -781,14 +840,17 @@ end
 
 function CastAbility (ability, npcTarget)
   local behave = ability:GetBehavior()
-  if bit.band(behave, 8) == 8 then
+  if bit.band(behave, 8) == 8 and npcTarget ~= nil then
+    print('Casting ' .. ability:GetName() .. ' directly')
     bot:Action_UseAbilityOnEntity(ability, npcTarget);
     return
   end
-  if bit.band(behave, 16) == 16 then
+  if bit.band(behave, 16) == 16 and npcTarget ~= nil then
+    print('Casting ' .. ability:GetName() .. ' by location')
     bot:Action_UseAbilityOnLocation(ability, npcTarget:GetLocation());
     return
   end
+  print('Casting ' .. ability:GetName())
   bot:Action_UseAbility(ability);
 end
 
@@ -802,8 +864,12 @@ function CheckAndUseAbility (ability, modifier, npcTarget, castThroughStuns)
   then
     if mutil.IsGoingOnSomeone(bot)
     then
+      if npcTarget == nil then
+        CastAbility(ability, nil)
+        return true, false;
+      end
       if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, bot, ability:GetCastRange())
-         and npcTarget:HasModifier(modifier) == false
+         and not npcTarget:HasModifier(modifier)
       then
         if not castThroughStuns and IsDisabled(npcTarget) then
           return false, true

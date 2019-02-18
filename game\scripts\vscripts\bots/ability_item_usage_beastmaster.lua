@@ -50,10 +50,13 @@ function AbilityUsageThink()
 
   local didAct = false
   local couldAct = false
+  mutil.IsGoingOnSomeone(npcBot)
   local npcTarget = npcBot:GetTarget()
 
-  didAct, couldAct = ability_item_usage_generic.CheckAndUseAbility(abilityPR, "none", npcTarget, false)
-  if didAct then return end
+  if npcTarget then
+    didAct, couldAct = ability_item_usage_generic.CheckAndUseAbility(abilityPR, "modifier_beastmaster_primal_roar", npcTarget, false)
+    if didAct then return end
+  end
 
   if couldAct then
     -- last, change targets
@@ -79,7 +82,7 @@ function AbilityUsageThink()
 
   if ( castWHDesire > 0 )
   then
-    npcBot:Action_UseAbility( abilityWH );
+    npcBot:Action_UseAbilityOnLocation(abilityWH, npcBot:GetLocation());
     return;
   end
 end

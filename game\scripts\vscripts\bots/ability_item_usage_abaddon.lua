@@ -63,15 +63,6 @@ function ConsiderDeathCoil()
 	local nDamage = abilityDC:GetSpecialValueInt("target_damage");
 	local nSelfDamage = abilityDC:GetSpecialValueInt("self_damage");
 
-	-- If we're seriously retreating, see if we can suicide
-	if mutil.IsRetreating(npcBot) and npcBot:GetHealth() <= nSelfDamage
-	then
-		local target = mutil.GetVulnerableWeakestUnit(true, true, nCastRange, npcBot);
-		if target ~= nil then
-			return BOT_ACTION_DESIRE_MODERATE, target;
-		end
-	end
-
 	if npcBot:HasModifier("modifier_abaddon_borrowed_time") then
 		local target = mutil.GetVulnerableWeakestUnit(true, true, nCastRange, npcBot);
 		if target ~= nil then
@@ -148,7 +139,7 @@ function ConsiderAphoticShield()
 			if ( npcAlly:GetUnitName() ~= npcBot:GetUnitName() and mutil.CanCastOnMagicImmune(npcAlly) )
 			then
 				local nAllyHP = npcAlly:GetHealth();
-				if ( ( nAllyHP < nLowestHealth and npcAlly:GetHealth() / npcAlly:GetMaxHealth() < 0.35 ) or mutil.IsDisabled(false, npcAlly) )
+				if ( ( nAllyHP < nLowestHealth and npcAlly:GetHealth() / npcAlly:GetMaxHealth() < 0.5 ) or mutil.IsDisabled(false, npcAlly) )
 				then
 					nLowestHealth = nAllyHP;
 					lowHpAlly = npcAlly;

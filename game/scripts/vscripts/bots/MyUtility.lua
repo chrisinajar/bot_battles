@@ -405,7 +405,7 @@ end
 --============== ^^^^^^^^^^ NEW FUNCTION ABOVE ^^^^^^^^^ ================--
 
 function U.IsRetreating(npcBot)
-	return BOT_MODE_ATTACK == BOT_MODE_RETREAT and npcBot:GetActiveModeDesire() > BOT_MODE_DESIRE_MODERATE and npcBot:DistanceFromFountain() > 0
+	return false
 end
 
 function U.IsValidTarget(npcTarget)
@@ -513,7 +513,7 @@ end
 
 function U.IsInTeamFight(npcBot, range)
 	local tableNearbyAttackingAlliedHeroes = npcBot:GetNearbyHeroes( range, false, BOT_MODE_ATTACK );
-	return tableNearbyAttackingAlliedHeroes ~= nil and #tableNearbyAttackingAlliedHeroes >= 2;
+	return tableNearbyAttackingAlliedHeroes ~= nil and #tableNearbyAttackingAlliedHeroes >= 1;
 end
 
 function U.CanNotUseAbility(npcBot)
@@ -523,11 +523,14 @@ end
 
 function U.IsGoingOnSomeone(npcBot)
 	local mode = BOT_MODE_ATTACK;
-	return mode == BOT_MODE_ROAM or
-		   mode == BOT_MODE_TEAM_ROAM or
-		   mode == BOT_MODE_GANK or
-		   mode == BOT_MODE_ATTACK or
-		   mode == BOT_MODE_DEFEND_ALLY
+  local target = npcBot:GetTarget()
+  if target == nil or not U.IsValidTarget(target) then
+    local targets = npcBot:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
+    local newTarget = targets[RandomInt(1, #targets)]
+    npcBot:SetTarget(newTarget)
+    target = newTarget
+  end
+  return U.IsValidTarget(target)
 end
 
 function U.IsDefending(npcBot)

@@ -621,11 +621,29 @@ function UnImplementedItemUsage()
     end
   end
 
-  local hood=IsItemAvailable("item_hood_of_defiance");
+  local hood=IsItemAvailable("item_pipe") or IsItemAvailable("item_hood_of_defiance");
     if hood~=nil and hood:IsFullyCastable() and bot:GetHealth()/bot:GetMaxHealth()<0.8 and not bot:HasModifier('modifier_item_pipe_barrier')
   then
     if tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes > 0 then
       bot:Action_UseAbility(hood);
+      return;
+    end
+  end
+
+  local cguard=IsItemAvailable("item_crimson_guard")
+    if cguard~=nil and cguard:IsFullyCastable() and not bot:HasModifier('modifier_item_crimson_guard_nostack')
+  then
+    if tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes > 0 then
+      bot:Action_UseAbility(cguard);
+      return;
+    end
+  end
+
+  local cguard=IsItemAvailable("item_ancient_janggo")
+    if cguard~=nil and cguard:IsFullyCastable() and not bot:HasModifier('modifier_item_ancient_janggo_active')
+  then
+    if tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes > 0 then
+      bot:Action_UseAbility(cguard);
       return;
     end
   end
@@ -803,6 +821,21 @@ function UnImplementedItemUsage()
   local hod=IsItemAvailable("item_helm_of_the_dominator");
   if hod and hod:IsFullyCastable() and ThinkAboutMindControl(hod, "none") then
     return
+  end
+
+  local armlet = IsItemAvailable("item_armlet");
+  if armlet then
+    local shouldArmlet = npcTarget and npcTarget:IsAlive() and mutil.IsInRange(npcTarget, bot, bot:GetAttackRange() + 200)
+    shouldArmlet = not (not shouldArmlet)
+    local isArmlet = bot:HasModifier('modifier_item_armlet_unholy_strength')
+    -- print('armlet? ' .. tostring(shouldArmlet) .. ', ' .. tostring(isArmlet))
+    if isArmlet ~= shouldArmlet then
+      if armlet:IsFullyCastable() then
+        CastAbility(armlet, nil)
+        print('Toggled armlet')
+        return
+      end
+    end
   end
 
   local itemTable = {

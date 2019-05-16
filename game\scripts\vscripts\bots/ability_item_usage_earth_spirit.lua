@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local npcBot = GetBot();
@@ -42,11 +45,11 @@ local stoneCast = -100;
 local stoneCastGap = 1.0;
 
 function AbilityUsageThink()
-	
+
 	nStone = npcBot:GetModifierStackCount(npcBot:GetModifierByName('modifier_earth_spirit_stone_caller_charge_counter'));
-	
+
 	if npcBot:IsUsingAbility() or npcBot:IsChanneling() or npcBot:IsSilenced() or npcBot:NumQueuedActions() > 0 then return end
-	
+
 	if abilityQ == nil then abilityQ = npcBot:GetAbilityByName( "earth_spirit_boulder_smash" ) end
 	if abilityW == nil then abilityW = npcBot:GetAbilityByName( "earth_spirit_rolling_boulder" ) end
 	if abilityE == nil then abilityE = npcBot:GetAbilityByName( "earth_spirit_geomagnetic_grip" ) end
@@ -62,15 +65,15 @@ function AbilityUsageThink()
 	castFDesire, castFTarget          = ConsiderF();
 	castRDesire                       = ConsiderR();
 
-	
-	if ( castRDesire > 0 ) 
+
+	if ( castRDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityR );
 		return;
 	end
-	
-	
-	if ( castFDesire > 0 ) 
+
+
+	if ( castFDesire > 0 )
 	then
 		--npcBot:Action_UseAbilityOnEntity( abilityF, castFTarget );
 		npcBot:ActionQueue_UseAbilityOnEntity(abilityF, castFTarget);
@@ -78,7 +81,7 @@ function AbilityUsageThink()
 		return;
 	end
 
-	if ( castQDesire > 0 ) 
+	if ( castQDesire > 0 )
 	then
 		if castQStone then
 			npcBot:Action_ClearActions(false);
@@ -95,8 +98,8 @@ function AbilityUsageThink()
 			end
 		end
 	end
-	
-	if ( castWDesire > 0 ) 
+
+	if ( castWDesire > 0 )
 	then
 		if castWStone then
 			npcBot:Action_ClearActions(false);
@@ -108,8 +111,8 @@ function AbilityUsageThink()
 			return;
 		end
 	end
-	
-	if ( castEDesire > 0 ) 
+
+	if ( castEDesire > 0 )
 	then
 		if castEStone then
 			npcBot:Action_ClearActions(false);
@@ -121,15 +124,15 @@ function AbilityUsageThink()
 			return;
 		end
 	end
-	
-	if ( castDDesire > 0 ) 
+
+	if ( castDDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilityD, castDLoc );
 		npcBot:ActionImmediate_Chat( "RESET BOYS", true );
 		stoneCast = DotaTime();
 		return;
 	end
-	
+
 end
 
 function IsStoneNearby(location, radius)
@@ -140,14 +143,14 @@ function IsStoneNearby(location, radius)
 		end
 	end
 	return false;
-end 
+end
 
 function IsStoneInPath(location, dist)
 	if npcBot:IsFacingLocation(location, 5) then
 		local units = GetUnitList(UNIT_LIST_ALLIED_OTHER);
 		for _,u in pairs(units) do
-			if u ~= nil and u:GetUnitName() == "npc_dota_earth_spirit_stone" 
-			   and npcBot:IsFacingLocation(u:GetLocation(), 5) and GetUnitToUnitDistance(u, npcBot) < dist 
+			if u ~= nil and u:GetUnitName() == "npc_dota_earth_spirit_stone"
+			   and npcBot:IsFacingLocation(u:GetLocation(), 5) and GetUnitToUnitDistance(u, npcBot) < dist
 			then
 				return true;
 			end
@@ -162,7 +165,7 @@ function CanChainMag(target, radius)
 	do
 		if not enemy:HasModifier('modifier_earth_spirit_magnetize') then
 			return true
-		end	
+		end
 	end
 	return false;
 end
@@ -170,7 +173,7 @@ end
 function ConsiderQ()
 
 	-- Make sure it's castable
-	if ( not abilityQ:IsFullyCastable() ) then 
+	if ( not abilityQ:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0, false, false;
 	end
 
@@ -185,32 +188,32 @@ function ConsiderQ()
 	local nDamage     = abilityQ:GetSpecialValueInt('rock_damage');
 
 	if nStoneCR > 1600 then nStoneCR = 1300 end
-	
+
 	local stoneNearby = IsStoneNearby(npcBot:GetLocation(), nSearchRad);
-	
+
 	--if we can kill any enemies
 	if stoneNearby then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nStoneCR, true, BOT_MODE_NONE );
 		local target = mutil.GetCanBeKilledUnit(tableNearbyEnemyHeroes, nDamage, DAMAGE_TYPE_MAGICAL, false)
 		if target ~= nil then
 			local loc = mutil.GetCorrectLoc(target, GetUnitToUnitDistance(npcBot, target)/nSpeed)
-			return BOT_ACTION_DESIRE_HIGH, loc, false, true; 
+			return BOT_ACTION_DESIRE_HIGH, loc, false, true;
 		end
 	elseif nStone >= 1 then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nStoneCR, true, BOT_MODE_NONE );
 		local target = mutil.GetCanBeKilledUnit(tableNearbyEnemyHeroes, nDamage, DAMAGE_TYPE_MAGICAL, false)
 		if target ~= nil then
 			local loc = mutil.GetCorrectLoc(target, GetUnitToUnitDistance(npcBot, target)/nSpeed)
-			return BOT_ACTION_DESIRE_HIGH, loc, true, false; 
+			return BOT_ACTION_DESIRE_HIGH, loc, true, false;
 		end
 	elseif nStone < 1 then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nUnitCR+200, true, BOT_MODE_NONE );
 		local target = mutil.GetCanBeKilledUnit(tableNearbyEnemyHeroes, nDamage, DAMAGE_TYPE_MAGICAL, false)
 		if target ~= nil then
-			return BOT_ACTION_DESIRE_HIGH, target, false, false; 
+			return BOT_ACTION_DESIRE_HIGH, target, false, false;
 		end
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot) and npcBot:WasRecentlyDamagedByAnyHero( 1.0 )
 	then
@@ -218,27 +221,27 @@ function ConsiderQ()
 			local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nStone, true, BOT_MODE_NONE );
 			local target = mutil.GetClosestUnit(tableNearbyEnemyHeroes)
 			if target ~= nil then
-				return BOT_ACTION_DESIRE_HIGH, target:GetLocation(), false, true; 
+				return BOT_ACTION_DESIRE_HIGH, target:GetLocation(), false, true;
 			end
 		elseif nStone >= 1 then
 			local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nStone, true, BOT_MODE_NONE );
 			local target = mutil.GetClosestUnit(tableNearbyEnemyHeroes)
 			if target ~= nil then
-				return BOT_ACTION_DESIRE_HIGH, target:GetLocation(), true, false; 
+				return BOT_ACTION_DESIRE_HIGH, target:GetLocation(), true, false;
 			end
 		elseif nStone < 1 then
 			local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nUnitCR+200, true, BOT_MODE_NONE );
 			local target = mutil.GetClosestUnit(tableNearbyEnemyHeroes)
 			if target ~= nil then
-				return BOT_ACTION_DESIRE_HIGH, target, false, false; 
+				return BOT_ACTION_DESIRE_HIGH, target, false, false;
 			end
 		end
 	end
-	
-	if mutil.IsInTeamFight(npcBot, 1200) 
+
+	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local locationAoE = npcBot:FindAoELocation( true, true, npcBot:GetLocation(), nStoneCR, nRadius, nCastPoint, 0 );
-		if ( locationAoE.count >= 2 ) 
+		if ( locationAoE.count >= 2 )
 		then
 			if stoneNearby then
 				return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc, false, true;
@@ -249,10 +252,10 @@ function ConsiderQ()
 	end
 
 	-- If we're going after someone
-	if mutil.IsGoingOnSomeone(npcBot) 
+	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nStoneCR + 200) 
+		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nStoneCR + 200)
 		then
 			local loc = mutil.GetCorrectLoc(npcTarget, GetUnitToUnitDistance(npcBot, target)/nSpeed)
 			if stoneNearby then
@@ -262,13 +265,13 @@ function ConsiderQ()
 			end
 		end
 	end
-	
+
 	local skThere, skLoc = mutil.IsSandKingThere(npcBot, nStoneCR, 2.0);
-	
+
 	if skThere and nStone >= 1 then
 		return BOT_ACTION_DESIRE_MODERATE, skLoc, true, false;
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0, false, false;
 
 end
@@ -276,7 +279,7 @@ end
 function ConsiderW()
 
 	-- Make sure it's castable
-	if ( not abilityW:IsFullyCastable() or npcBot:IsRooted() ) then 
+	if ( not abilityW:IsFullyCastable() or npcBot:IsRooted() ) then
 		return BOT_ACTION_DESIRE_NONE, 0, false;
 	end
 
@@ -290,15 +293,15 @@ function ConsiderW()
 	local nSpeed      = abilityW:GetSpecialValueInt('speed');
 	local nRSpeed     = abilityW:GetSpecialValueInt('rock_speed');
 	local nDamage     = abilityW:GetSpecialValueInt('damage');
-	
+
 	if nStoneCR > 1600 then nStoneCR = 1300 end
-	
+
 	if mutil.IsStuck(npcBot)
 	then
 		local loc = mutil.GetEscapeLoc();
 		return BOT_ACTION_DESIRE_HIGH, npcBot:GetXUnitsTowardsLocation( loc, nStoneCR );
 	end
-	
+
 	--if we can kill any enemies
 	if nStone >= 1 then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nStoneCR, true, BOT_MODE_NONE );
@@ -306,19 +309,19 @@ function ConsiderW()
 		if target ~= nil then
 			local loc = mutil.GetCorrectLoc(target, (GetUnitToUnitDistance(npcBot, target)/nRSpeed)+nDelay)
 			if IsStoneInPath(loc, (nUnitCR/2)+200) then
-				return BOT_ACTION_DESIRE_HIGH, loc, false; 
+				return BOT_ACTION_DESIRE_HIGH, loc, false;
 			else
-				return BOT_ACTION_DESIRE_HIGH, loc, true; 
+				return BOT_ACTION_DESIRE_HIGH, loc, true;
 			end
 		end
 	elseif nStone < 1 then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nUnitCR-200, true, BOT_MODE_NONE );
 		local target = mutil.GetCanBeKilledUnit(tableNearbyEnemyHeroes, nDamage, DAMAGE_TYPE_MAGICAL, false)
 		if target ~= nil then
-			return BOT_ACTION_DESIRE_HIGH, target, false; 
+			return BOT_ACTION_DESIRE_HIGH, target, false;
 		end
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot) and npcBot:WasRecentlyDamagedByAnyHero( 1.0 )
 	then
@@ -332,12 +335,12 @@ function ConsiderW()
 			return BOT_ACTION_DESIRE_MODERATE, loc, false;
 		end
 	end
-	
+
 	-- If we're going after someone
-	if mutil.IsGoingOnSomeone(npcBot) 
+	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if nStone >= 1 and mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nStoneCR + 200) 
+		if nStone >= 1 and mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nStoneCR + 200)
 		then
 			local targetAlly  = npcTarget:GetNearbyHeroes(1000, false, BOT_MODE_NONE);
 			local targetEnemy = npcTarget:GetNearbyHeroes(1000, true, BOT_MODE_NONE);
@@ -348,13 +351,13 @@ function ConsiderW()
 				else
 					return BOT_ACTION_DESIRE_HIGH, loc, true;
 				end
-			end	
+			end
 		elseif nStone < 1 and mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nUnitCR / 2)  then
 			local loc = mutil.GetCorrectLoc(npcTarget, GetUnitToUnitDistance(npcBot, target)/nSpeed)
 			return BOT_ACTION_DESIRE_HIGH, loc, false;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0, false;
 
 end
@@ -362,7 +365,7 @@ end
 function ConsiderE()
 
 	-- Make sure it's castable
-	if ( not abilityE:IsFullyCastable() ) then 
+	if ( not abilityE:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0, false, false;
 	end
 
@@ -373,17 +376,17 @@ function ConsiderE()
 	local nCastPoint  = abilityE:GetCastPoint( );
 	local nManaCost   = abilityE:GetManaCost( );
 	local nDamage     = abilityE:GetSpecialValueInt('rock_damage');
-	
+
 	if gripAllies ~= nil and gripAllies:IsTrained() then
 		local tableNearbyAllies = npcBot:GetNearbyHeroes( nCastRange+200, false, BOT_MODE_NONE );
-		for _,ally in pairs(tableNearbyAllies) 
+		for _,ally in pairs(tableNearbyAllies)
 		do
 			if ally:GetActiveMode() == BOT_MODE_RETREAT and ally:WasRecentlyDamagedByAnyHero(2.0) then
-				return BOT_ACTION_DESIRE_HIGH, ally:GetLocation(), false, true; 
+				return BOT_ACTION_DESIRE_HIGH, ally:GetLocation(), false, true;
 			end
 		end
-	end	
-	
+	end
+
 	--if we can kill any enemies
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 	local target = mutil.GetCanBeKilledUnit(tableNearbyEnemyHeroes, nDamage, DAMAGE_TYPE_MAGICAL, false)
@@ -391,32 +394,32 @@ function ConsiderE()
 		local loc = mutil.GetCorrectLoc(target, 2*nCastPoint)
 		local stoneNearby = IsStoneNearby(loc, nSearchRad);
 		if stoneNearby and ( nStone >= 1 or  nStone < 1 ) then
-			return BOT_ACTION_DESIRE_HIGH, loc, false, true; 
+			return BOT_ACTION_DESIRE_HIGH, loc, false, true;
 		elseif nStone >= 1 then
-			return BOT_ACTION_DESIRE_HIGH, loc, true, false; 
+			return BOT_ACTION_DESIRE_HIGH, loc, true, false;
 		end
 	end
-	
-	if mutil.IsInTeamFight(npcBot, 1200) 
+
+	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local locationAoE = npcBot:FindAoELocation( true, true, npcBot:GetLocation(), nCastRange, nRadius, nCastPoint, 0 );
-		if ( locationAoE.count >= 2 ) 
+		if ( locationAoE.count >= 2 )
 		then
 			local stoneNearby = IsStoneNearby(locationAoE.targetloc, nSearchRad);
 			if stoneNearby and ( nStone >= 1 or  nStone < 1 ) then
-				return BOT_ACTION_DESIRE_HIGH, locationAoE.targetloc, false, true; 
+				return BOT_ACTION_DESIRE_HIGH, locationAoE.targetloc, false, true;
 			elseif nStone >= 1 then
-				return BOT_ACTION_DESIRE_HIGH, locationAoE.targetloc, true, false; 
+				return BOT_ACTION_DESIRE_HIGH, locationAoE.targetloc, true, false;
 			end
 		end
 	end
 
-	
+
 	-- If we're going after someone
-	if mutil.IsGoingOnSomeone(npcBot) 
+	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange - 200) 
+		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange - 200)
 		then
 			local targetAlly  = npcTarget:GetNearbyHeroes(1000, false, BOT_MODE_NONE);
 			local targetEnemy = npcTarget:GetNearbyHeroes(1000, true, BOT_MODE_NONE);
@@ -424,36 +427,36 @@ function ConsiderE()
 				local loc = mutil.GetCorrectLoc(npcTarget, 2*nCastPoint)
 				local stoneNearby = IsStoneNearby(loc, nSearchRad);
 				if stoneNearby and ( nStone >= 1 or  nStone < 1 ) then
-					return BOT_ACTION_DESIRE_HIGH, loc, false, true; 
+					return BOT_ACTION_DESIRE_HIGH, loc, false, true;
 				elseif nStone >= 1 then
-					return BOT_ACTION_DESIRE_HIGH, loc, true, false; 
+					return BOT_ACTION_DESIRE_HIGH, loc, true, false;
 				end
-			end	
+			end
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0, false, false;
 
 end
 
 function ConsiderD()
-	
+
 	-- Make sure it's castable
-	if ( not abilityD:IsFullyCastable() ) then 
+	if ( not abilityD:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	if DotaTime() < stoneCast + stoneCastGap then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	local nCastRange  = abilityD:GetCastRange( );
 	local nRadius     = abilityR:GetSpecialValueInt('rock_search_radius');
-	
+
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange - 200, true, BOT_MODE_NONE );
 	for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 	do
-		if npcEnemy:HasModifier('modifier_earth_spirit_magnetize') 
+		if npcEnemy:HasModifier('modifier_earth_spirit_magnetize')
 		then
 			local duration = npcEnemy:GetModifierRemainingDuration(npcEnemy:GetModifierByName('modifier_earth_spirit_magnetize'));
 			if duration < 1.0 or CanChainMag(npcEnemy, nRadius) then
@@ -461,24 +464,24 @@ function ConsiderD()
 			end
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 end
 
 function ConsiderF()
 	-- Make sure it's castable
-	if ( not abilityF:IsFullyCastable() ) then 
+	if ( not abilityF:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
-	
+
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 end
 
 function ConsiderR()
 
 	-- Make sure it's castable
-	if ( not abilityR:IsFullyCastable() ) then 
+	if ( not abilityR:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -493,22 +496,22 @@ function ConsiderR()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy)  ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy)  )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
-		if ( tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes >= 2 ) 
+		if ( tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes >= 2 )
 		then
 			return BOT_ACTION_DESIRE_HIGH;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then

@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castSNDesire = 0;
@@ -33,7 +36,7 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -49,42 +52,42 @@ function AbilityUsageThink()
 	castFLDesire, castFLTarget = ConsiderFlamingLasso();
 	castBlinkDesire, itemBlink, castBlinkLoc = ConsiderBlink();
 	castForceDesire, itemForce, castForceTarget = ConsiderForceStaff();
-	
+
 	if castForceDesire > 0 then
 		npcBot:Action_UseAbilityOnEntity( itemForce, castForceTarget );
 		return;
 	end
-	
+
 	if castBlinkDesire > 0 then
 		npcBot:Action_UseAbilityOnLocation( itemBlink, castBlinkLoc );
 		return;
 	end
-	
-	if ( castFLDesire > 0 ) 
+
+	if ( castFLDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityFL, castFLTarget );
 		return;
 	end
-	
-	if ( castFFDesire > 0 ) 
+
+	if ( castFFDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityFF );
 		return;
 	end
 
-	if ( castSNDesire > 0 ) 
+	if ( castSNDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilitySN, castDCLocation );
 		return;
 	end
-	
-	if ( castFBDesire > 0 ) 
+
+	if ( castFBDesire > 0 )
 	then
-		
+
 		npcBot:Action_UseAbilityOnLocation( abilityFB, castFBLocation );
 		return;
-	end	
-	
+	end
+
 
 end
 
@@ -95,8 +98,8 @@ function ConsiderStickyNapalm()
 		print(npcBot:GetActiveMode());
 	end]]--
 	-- Make sure it's castable
-	if ( not abilitySN:IsFullyCastable() ) 
-	then 
+	if ( not abilitySN:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -115,14 +118,14 @@ function ConsiderStickyNapalm()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, npcEnemy:GetLocation();
 			end
 		end
 	end
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange)  )
@@ -130,25 +133,25 @@ function ConsiderStickyNapalm()
 			return BOT_ACTION_DESIRE_LOW, npcTarget:GetLocation();
 		end
 	end
-	
+
 	-- If we're pushing or defending a lane and can hit 4+ creeps, go for it
 	if  ( npcBot:GetActiveMode() == BOT_MODE_LANING or
 		mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot) ) and npcBot:GetMana() / npcBot:GetMaxMana() > 0.75
 	then
 		local lanecreeps = npcBot:GetNearbyLaneCreeps(nCastRange+200, true);
 		local locationAoE = npcBot:FindAoELocation( true, false, npcBot:GetLocation(), nCastRange, nRadius, 0, 0 );
-		if ( locationAoE.count >= 4 and #lanecreeps >= 4   ) 
+		if ( locationAoE.count >= 4 and #lanecreeps >= 4   )
 		then
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
 	end
 
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200)  ) 
+		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200)  )
 		then
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetExtrapolatedLocation( nCastPoint );
 		end
@@ -161,8 +164,8 @@ end
 function ConsiderFlameBreak()
 
 	-- Make sure it's castable
-	if ( not abilityFB:IsFullyCastable() ) 
-	then 
+	if ( not abilityFB:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -188,17 +191,17 @@ function ConsiderFlameBreak()
 			end
 		end
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 1000) ) 
+		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 1000) )
 		then
 			local nDelay = ( GetUnitToUnitDistance( npcTarget, npcBot ) / nSpeed ) + nCastPoint
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetExtrapolatedLocation(nDelay);
 		end
 	end
-	
+
 --
 	return BOT_ACTION_DESIRE_NONE;
 end
@@ -208,34 +211,34 @@ end
 function ConsiderFireFly()
 
 	-- Make sure it's castable
-	if ( not abilityFF:IsFullyCastable() ) then 
+	if ( not abilityFF:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local nRadius = abilityFF:GetSpecialValueInt( "radius" );
-	
+
 	if mutil.IsStuck(npcBot)
 	then
 		return BOT_ACTION_DESIRE_HIGH;
 	end
-	
+
 	if npcBot:HasModifier('modifier_batrider_flaming_lasso_self') then
 		return BOT_ACTION_DESIRE_HIGH;
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) )
 			then
 				return BOT_ACTION_DESIRE_HIGH;
 			end
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE  );
@@ -244,8 +247,8 @@ function ConsiderFireFly()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
-	
+
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -255,20 +258,20 @@ function ConsiderFireFly()
 			return BOT_ACTION_DESIRE_HIGH;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
 end
 
 function ConsiderFlamingLasso()
 
 	-- Make sure it's castable
-	if ( not abilityFL:IsFullyCastable() ) then 
+	if ( not abilityFL:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
 	-- Get some of its values
 	local nCastRange = abilityFL:GetCastRange();
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -278,7 +281,7 @@ function ConsiderFlamingLasso()
 			return BOT_ACTION_DESIRE_HIGH, npcTarget;
 		end
 	end
-	
+
 	-- If we're in a teamfight, use it on the scariest enemy
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
@@ -296,7 +299,7 @@ function ConsiderFlamingLasso()
 			return BOT_ACTION_DESIRE_HIGH, npcToKill;
 		end
 	end
-	
+
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange + 200, true, BOT_MODE_NONE );
 	for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 	do
@@ -311,7 +314,7 @@ end
 
 function ConsiderBlink()
 	local blink = nil;
-	
+
 	for i=0,5 do
 		local item = npcBot:GetItemInSlot(i)
 		if item ~= nil and item:GetName() == "item_blink" then
@@ -319,22 +322,22 @@ function ConsiderBlink()
 			break
 		end
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot) and blink ~= nil and blink:IsFullyCastable() and abilityFL:IsFullyCastable()
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and not mutil.IsInRange(npcTarget, npcBot, 600) and mutil.IsInRange(npcTarget, npcBot, 1000) ) 
+		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and not mutil.IsInRange(npcTarget, npcBot, 600) and mutil.IsInRange(npcTarget, npcBot, 1000) )
 		then
 			return BOT_ACTION_DESIRE_MODERATE, blink, npcTarget:GetExtrapolatedLocation(0.1);
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, nil, nil;
 end
 
 function ConsiderForceStaff()
 	local force = nil;
-	
+
 	for i=0,5 do
 		local item = npcBot:GetItemInSlot(i)
 		if item ~= nil and item:GetName() == "item_force_staff" then
@@ -342,11 +345,11 @@ function ConsiderForceStaff()
 			break
 		end
 	end
-	
+
 	if force ~= nil and force:IsFullyCastable() and npcBot:HasModifier('modifier_batrider_flaming_lasso_self') and npcBot:IsFacingLocation(mutil.GetTeamFountain(),10)
 	then
 		return BOT_ACTION_DESIRE_MODERATE, force, npcBot
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, nil, nil;
 end

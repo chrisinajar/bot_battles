@@ -6,14 +6,17 @@ end
 local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_usage_generic" )
 local utils = require(GetScriptDirectory() ..  "/util")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local abilityQ = ""
@@ -50,10 +53,10 @@ function AbilityUsageThink()
     local bot = GetBot()
 
     if not bot:IsAlive() then return false end
-		
+
     -- Check if we're already using an ability
     if bot:IsUsingAbility() or bot:IsChanneling() or bot:IsSilenced() then return false end
-	
+
     if abilityQ == "" then abilityQ = bot:GetAbilityByName( "invoker_quas" ) end
     if abilityW == "" then abilityW = bot:GetAbilityByName( "invoker_wex" ) end
     if abilityE == "" then abilityE = bot:GetAbilityByName( "invoker_exort" ) end
@@ -82,9 +85,9 @@ function AbilityUsageThink()
     castGWDesire = ConsiderGhostWalk(bot, nearbyEnemyHeroes)
     castIWDesire = ConsiderIceWall(bot, nearbyEnemyHeroes)
     castFSDesire = ConsiderForgedSpirit(bot,  nearbyEnemyHeroes, nearbyEnemyCreep, nearbyEnemyTowers)
-	
+
 	ConsiderEarlySpeels(bot)
-	
+
 	if not inGhostWalk(bot) then
 		if castTODesire > 0 then
 			--print("cast TO")
@@ -98,7 +101,7 @@ function AbilityUsageThink()
                 return true
             end
         end
-        
+
         if castCMDesire > 0 then
 			--print("cast CM")
             if not abilityCM:IsHidden() then
@@ -163,7 +166,7 @@ function AbilityUsageThink()
                 return true
             end
         end
-        
+
         if castACDesire > 0 then
 			--print("cast AC")
             if not abilityAC:IsHidden() then
@@ -189,7 +192,7 @@ function AbilityUsageThink()
                 return true
             end
         end
-        
+
         if castGWDesire > 0 then
 			--print("cast GW")
             if not abilityGW:IsHidden() then
@@ -215,20 +218,20 @@ function AbilityUsageThink()
                 return true
             end
         end
-		
+
 		local bRet = ConsiderOrbs(bot)
 		if bRet then return end
-        
+
 	end
-	
+
 	 -- Initial invokes at low levels
-	
+
 	bRet = ConsiderShowUp(bot, nearbyEnemyHeroes)
-	
+
     if bRet then return end
-	
+
     return false
-	
+
 end
 
 function ConsiderEarlySpeels(bot)
@@ -241,18 +244,18 @@ function ConsiderEarlySpeels(bot)
 			return
 		elseif wexTrained() and abilityEMP:IsHidden() then
 			invokeEMP(bot)
-			return	
+			return
 		end
     elseif bot:GetLevel() == 2 then
 		if quasTrained() and exortTrained() and abilityCS:IsHidden() then
 			tripleExortBuff(bot) -- this is first since we are pushing, not queueing
 			invokeColdSnap(bot)
 			return
-		elseif quasTrained() and wexTrained() and abilityEMP:IsHidden()then 
+		elseif quasTrained() and wexTrained() and abilityEMP:IsHidden()then
 			tripleWexBuff(bot) -- this is first since we are pushing, not queueing
 			invokeEMP(bot)
 			return
-		end	
+		end
     end
 end
 
@@ -263,7 +266,7 @@ function ConsiderShowUp(bot, nearbyEnemyHeroes)
 		bot:ActionPush_UseAbility(abilityW )
 		return true
 	end
-    
+
     return false
 end
 
@@ -272,7 +275,7 @@ function ConsiderOrbs(bot)
     local nQuas = 0
     local nWex = 0
     local nExort = 0
-    
+
     for i = 0, botModifierCount-1, 1 do
         local modName = bot:GetModifierName(i)
         if modName == "modifier_invoker_wex_instance" then
@@ -282,12 +285,12 @@ function ConsiderOrbs(bot)
         elseif modName == "modifier_invoker_exort_instance" then
             nExort = nExort + 1
         end
-        
+
         if (nWex + nQuas + nExort) >= 3 then break end
     end
-    
+
     if IsRetreating(bot) then
-        if nWex < 3 then 
+        if nWex < 3 then
             tripleWexBuff(bot)
             return true
         end
@@ -302,7 +305,7 @@ function ConsiderOrbs(bot)
             return true
         end
     end
-    
+
     return false
 end
 
@@ -351,7 +354,7 @@ function invokeTornado(bot)
     if not abilityR:IsFullyCastable() then
         return false
     end
-    
+
     bot:ActionPush_UseAbility( abilityR )
     bot:ActionPush_UseAbility( abilityW )
     bot:ActionPush_UseAbility( abilityQ )
@@ -365,7 +368,7 @@ function invokeChaosMeteor(bot)
     if not abilityR:IsFullyCastable() then
         return false
     end
-    
+
     bot:ActionPush_UseAbility( abilityR )
     bot:ActionPush_UseAbility( abilityE )
     bot:ActionPush_UseAbility( abilityW )
@@ -379,12 +382,12 @@ function invokeDeafeningBlast(bot)
     if not abilityR:IsFullyCastable() then
         return false
     end
-    
+
     bot:ActionPush_UseAbility( abilityR )
     bot:ActionPush_UseAbility( abilityQ )
     bot:ActionPush_UseAbility( abilityW )
     bot:ActionPush_UseAbility( abilityE )
-    
+
     return true
 end
 
@@ -393,7 +396,7 @@ function invokeForgedSpirit(bot)
     if not abilityR:IsFullyCastable() then
         return false
     end
-    
+
 
     bot:ActionPush_UseAbility( abilityR )
     bot:ActionPush_UseAbility( abilityE )
@@ -408,7 +411,7 @@ function invokeIceWall(bot)
     if not abilityR:IsFullyCastable() then
         return false
     end
-	
+
     bot:ActionPush_UseAbility( abilityR )
     bot:ActionPush_UseAbility( abilityQ )
     bot:ActionPush_UseAbility( abilityQ )
@@ -421,7 +424,7 @@ function invokeEMP(bot)
     if not abilityR:IsFullyCastable() then
         return false
     end
-    
+
     bot:ActionPush_UseAbility( abilityR )
     bot:ActionPush_UseAbility( abilityW )
     bot:ActionPush_UseAbility( abilityW )
@@ -477,7 +480,7 @@ function invokeGhostWalk(bot)
     if not abilityR:IsFullyCastable() then
         return false
     end
-    
+
     bot:ActionPush_UseAbility( abilityR )
     bot:ActionPush_UseAbility( abilityQ )
     bot:ActionPush_UseAbility( abilityW )
@@ -510,7 +513,7 @@ end
 function IsPushing(npcBot)
 	return npcBot:GetActiveMode() == BOT_MODE_PUSH_TOWER_TOP or
 		   npcBot:GetActiveMode() == BOT_MODE_PUSH_TOWER_MID or
-		   npcBot:GetActiveMode() == BOT_MODE_PUSH_TOWER_BOT 
+		   npcBot:GetActiveMode() == BOT_MODE_PUSH_TOWER_BOT
 end
 
 function CanCastAlacrityOnTarget( target )
@@ -559,7 +562,7 @@ function ConsiderTornado(bot, nearbyEnemyHeroes)
     local nDistance = abilityTO:GetSpecialValueInt( "travel_distance" )
     local nSpeed = 1000
     local nCastRange = abilityTO:GetCastRange()
-    
+
     --------------------------------------
     -- Global high-priorty usage
     --------------------------------------

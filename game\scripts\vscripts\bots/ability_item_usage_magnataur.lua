@@ -7,14 +7,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castDCDesire = 0;
@@ -32,7 +35,7 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -40,41 +43,41 @@ function AbilityUsageThink()
 	if abilityBL == nil then abilityBL = npcBot:GetAbilityByName( "magnataur_empower" ) end
 	if abilityTW == nil then abilityTW = npcBot:GetAbilityByName( "magnataur_skewer" ) end
 	if abilitySC == nil then abilitySC = npcBot:GetAbilityByName( "magnataur_reverse_polarity" ) end
-	
+
 	-- Consider using each ability
 	castDCDesire, castDCLocation = ConsiderDecay();
 	castBLDesire, castBLTarget = ConsiderBloodlust();
 	castTWDesire, castTWLocation = ConsiderTimeWalk();
 	castSCDesire = ConsiderSlithereenCrush();
-	
-	if ( castSCDesire > 0 ) 
+
+	if ( castSCDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilitySC );
 		return;
 	end
-	if ( castDCDesire > 0 ) 
+	if ( castDCDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilityDC, castDCLocation );
 		return;
 	end
-	if ( castTWDesire > 0 ) 
+	if ( castTWDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilityTW, castTWLocation );
 		return;
-	end	
-	if ( castBLDesire > 0 ) 
+	end
+	if ( castBLDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityBL, castBLTarget );
 		return;
 	end
-	
+
 end
 
 function ConsiderDecay()
 
 	-- Make sure it's castable
-	if ( not abilityDC:IsFullyCastable() ) 
-	then 
+	if ( not abilityDC:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -95,30 +98,30 @@ function ConsiderDecay()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, npcEnemy:GetLocation();
 			end
 		end
 	end
-	
+
 	-- If we're pushing or defending a lane and can hit 4+ creeps, go for it
 	if ( mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot) ) and npcBot:GetMana() / npcBot:GetMaxMana() > 0.6
 	then
 		local lanecreeps = npcBot:GetNearbyLaneCreeps(nCastRange, true);
 		local locationAoE = npcBot:FindAoELocation( true, false, npcBot:GetLocation(), nCastRange, nRadius, 0, 0 );
-		if (  locationAoE.count >= 4 and #lanecreeps >= 4   ) 
+		if (  locationAoE.count >= 4 and #lanecreeps >= 4   )
 		then
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
 	end
 
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange-200) ) 
+		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange-200) )
 		then
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetExtrapolatedLocation((GetUnitToUnitDistance(npcTarget, npcBot)/nSpeed)+nCastPoint);
 		end
@@ -130,12 +133,12 @@ end
 function ConsiderBloodlust()
 
 	-- Make sure it's castable
-	if ( not abilityBL:IsFullyCastable() ) then 
+	if ( not abilityBL:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	local nCastRange = abilityBL:GetCastRange();
-	
+
 	-- If we're pushing or defending a lane
 	if mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot)
 	then
@@ -144,14 +147,14 @@ function ConsiderBloodlust()
 		end
 		local tableNearbyFriendlyHeroes = npcBot:GetNearbyHeroes( nCastRange+200, false, BOT_MODE_NONE );
 		for _,myFriend in pairs(tableNearbyFriendlyHeroes) do
-			if ( not myFriend:HasModifier("modifier_magnataur_empower") ) 
+			if ( not myFriend:HasModifier("modifier_magnataur_empower") )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, myFriend;
 			end
-		end	
+		end
 	end
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange)  )
@@ -159,7 +162,7 @@ function ConsiderBloodlust()
 			return BOT_ACTION_DESIRE_LOW, npcBot;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -168,59 +171,59 @@ function ConsiderBloodlust()
 		end
 		local tableNearbyFriendlyHeroes = npcBot:GetNearbyHeroes( nCastRange+200, false, BOT_MODE_NONE );
 		for _,myFriend in pairs(tableNearbyFriendlyHeroes) do
-			if ( not myFriend:HasModifier("modifier_magnataur_empower") ) 
+			if ( not myFriend:HasModifier("modifier_magnataur_empower") )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, myFriend;
 			end
-		end	
+		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 end
 
 function ConsiderTimeWalk()
 
 	-- Make sure it's castable
-	if ( not abilityTW:IsFullyCastable() or npcBot:IsRooted() ) 
-	then 
+	if ( not abilityTW:IsFullyCastable() or npcBot:IsRooted() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
-	
+
+
 	-- Get some of its values
 	local nCastRange = abilityTW:GetSpecialValueInt("range");
 	local nSpeed = abilityTW:GetSpecialValueInt("skewer_speed");
 	local nCastPoint = abilityTW:GetCastPoint( );
-	
+
 	if mutil.IsStuck(npcBot)
 	then
 		local loc = mutil.GetEscapeLoc();
 		return BOT_ACTION_DESIRE_HIGH, npcBot:GetXUnitsTowardsLocation( loc, nCastRange );
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
 			then
 				local loc = mutil.GetEscapeLoc();
 				return BOT_ACTION_DESIRE_HIGH, npcBot:GetXUnitsTowardsLocation( loc, nCastRange );
 			end
 		end
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if  mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange-200) 
+		if  mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange-200)
 		then
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetExtrapolatedLocation((GetUnitToUnitDistance(npcTarget, npcBot)/nSpeed)+nCastPoint);
 		end
 	end
-	
+
 --
 	return BOT_ACTION_DESIRE_NONE, 0;
 end
@@ -229,7 +232,7 @@ end
 function ConsiderSlithereenCrush()
 
 	-- Make sure it's castable
-	if ( not abilitySC:IsFullyCastable() ) then 
+	if ( not abilitySC:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 

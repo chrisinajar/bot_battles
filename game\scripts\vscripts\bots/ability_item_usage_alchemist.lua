@@ -6,8 +6,8 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
@@ -15,9 +15,9 @@ end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
 end
---[[function ItemUsageThink() 
-	ability_item_usage_generic.ItemUsageThink() 
-end]]--
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
+end
 
 local castSSDesire = 0;
 local castTSDesire = 0;
@@ -38,7 +38,7 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -52,40 +52,40 @@ function AbilityUsageThink()
 	castTSDesire, castTSTarget = ConsiderThunderStorm();
 	castPCDesire = ConsiderPounce();
 	castFGDesire = ConsiderFleshGolem();
-	
-	if ( castFGDesire > 0 ) 
+
+	if ( castFGDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityFG );
 		return;
 	end
 
-	if ( castTSDesire > 0 ) 
+	if ( castTSDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityTS, castTSTarget );
 		return;
 	end
-	
-	if ( castSSDesire > 0 ) 
+
+	if ( castSSDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilitySS, castSSLocation );
 		return;
 	end
-	
-	if ( castPCDesire > 0 ) 
+
+	if ( castPCDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityPC );
 		CCStartTime =  DotaTime();
 		return;
 	end
-	
-	
+
+
 end
 
 
 function ConsiderPounce()
 
 	-- Make sure it's castable
-	if ( not abilityPC:IsFullyCastable() ) then 
+	if ( not abilityPC:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -103,7 +103,7 @@ function ConsiderPounce()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 )  and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 )  and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
@@ -119,7 +119,7 @@ function ConsiderPounce()
 			return BOT_ACTION_DESIRE_HIGH;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -138,35 +138,35 @@ end
 function ConsiderThunderStorm()
 
 	-- Make sure it's castable
-	if ( not abilityTS:IsFullyCastable() or abilityTS:IsHidden() ) then 
+	if ( not abilityTS:IsFullyCastable() or abilityTS:IsHidden() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	-- Get some of its values
 	local nCastRange = abilityTS:GetCastRange();
 	local nDamage = abilityPC:GetSpecialValueInt( "max_damage" );
-	
-	
+
+
 	-- If a mode has set a target, and we can kill them, do it
 	local npcTarget = npcBot:GetTarget();
 	if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) )
 	then
-		if ( ( DotaTime() == CCStartTime + offDuration or 
-				mutil.CanKillTarget(npcTarget, nDamage, DAMAGE_TYPE_PHYSICAL)  ) and 
+		if ( ( DotaTime() == CCStartTime + offDuration or
+				mutil.CanKillTarget(npcTarget, nDamage, DAMAGE_TYPE_PHYSICAL)  ) and
 				mutil.IsInRange(npcTarget, npcBot, nCastRange + 200) )
 		then
 			return BOT_ACTION_DESIRE_HIGH, npcTarget;
 		end
 	end
-	
-	
+
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
-		do 
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) and DotaTime() >= CCStartTime + defDuration ) 
+		do
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) and DotaTime() >= CCStartTime + defDuration )
 			then
 				return BOT_ACTION_DESIRE_HIGH, npcEnemy;
 			end
@@ -176,9 +176,9 @@ function ConsiderThunderStorm()
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
-		if mutil.IsValidTarget(npcTarget) and 
-		   mutil.CanCastOnNonMagicImmune(npcTarget) and 
-		   ( DotaTime() >= CCStartTime + offDuration or npcTarget:GetHealth() < nDamage or npcTarget:IsChanneling() ) 
+		if mutil.IsValidTarget(npcTarget) and
+		   mutil.CanCastOnNonMagicImmune(npcTarget) and
+		   ( DotaTime() >= CCStartTime + offDuration or npcTarget:GetHealth() < nDamage or npcTarget:IsChanneling() )
 		then
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget;
 		end
@@ -187,22 +187,22 @@ function ConsiderThunderStorm()
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1300, true, BOT_MODE_NONE );
 	for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 	do
-		if ( mutil.CanCastOnNonMagicImmune(npcEnemy) and 
-		   ( DotaTime() >= CCStartTime + offDuration or npcEnemy:GetHealth() < nDamage or npcEnemy:IsChanneling() ) and 
-		   mutil.IsInRange(npcTarget, npcBot, nCastRange+200)  ) 
+		if ( mutil.CanCastOnNonMagicImmune(npcEnemy) and
+		   ( DotaTime() >= CCStartTime + offDuration or npcEnemy:GetHealth() < nDamage or npcEnemy:IsChanneling() ) and
+		   mutil.IsInRange(npcTarget, npcBot, nCastRange+200)  )
 		then
 			return BOT_ACTION_DESIRE_HIGH, npcEnemy;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 end
 
 function ConsiderStaticStorm()
 
 	-- Make sure it's castable
-	if ( not abilitySS:IsFullyCastable() ) 
-	then 
+	if ( not abilitySS:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -221,22 +221,22 @@ function ConsiderStaticStorm()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, npcBot:GetLocation();
 			end
 		end
 	end
-	
-	if npcBot:GetActiveMode() == BOT_MODE_FARM 
+
+	if npcBot:GetActiveMode() == BOT_MODE_FARM
 	then
 		local locationAoE = npcBot:FindAoELocation( true, false, npcBot:GetLocation(), 400, 300, 0, 0 );
 		if  locationAoE.count >= 3 then
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
-	end	
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+	end
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange)  )
@@ -244,19 +244,19 @@ function ConsiderStaticStorm()
 			return BOT_ACTION_DESIRE_LOW, npcTarget:GetLocation();
 		end
 	end
-	
+
 	-- If we're pushing or defending a lane and can hit 4+ creeps, go for it
 	if ( npcBot:GetActiveMode() == BOT_MODE_LANING or
 	     mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot) ) and npcBot:GetMana() / npcBot:GetMaxMana() > 0.5
 	then
 		local lanecreeps = npcBot:GetNearbyLaneCreeps(nCastRange+200, true);
 		local locationAoE = npcBot:FindAoELocation( true, false, npcBot:GetLocation(), nCastRange, nRadius/2, 0, 0 );
-		if ( locationAoE.count >= 4 and #lanecreeps >= 4  ) 
+		if ( locationAoE.count >= 4 and #lanecreeps >= 4  )
 		then
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local locationAoE = npcBot:FindAoELocation( true, true, npcBot:GetLocation(), nCastRange, nRadius/2, 0, 0 );
@@ -264,12 +264,12 @@ function ConsiderStaticStorm()
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange) ) 
+		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange) )
 		then
 			local EnemyHeroes = npcTarget:GetNearbyHeroes( nRadius, false, BOT_MODE_NONE );
 			if ( #EnemyHeroes >= 2 )
@@ -278,51 +278,51 @@ function ConsiderStaticStorm()
 			end
 		end
 	end
-	
+
 	local skThere, skLoc = mutil.IsSandKingThere(npcBot, nCastRange+200, 2.0);
-	
+
 	if skThere then
 		return BOT_ACTION_DESIRE_MODERATE, skLoc;
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 end
 
 
 function ConsiderFleshGolem()
 	-- Make sure it's castable
-	if ( not abilityFG:IsFullyCastable() ) then 
+	if ( not abilityFG:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local nRadius = 1000;
-	
+
 	if npcBot:GetHealth() / npcBot:GetMaxHealth() < 0.5 then
 		return BOT_ACTION_DESIRE_LOW;
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) )
 			then
 				return BOT_ACTION_DESIRE_HIGH;
 			end
 		end
 	end
-	
+
 	if npcBot:GetActiveMode() == BOT_MODE_FARM and npcBot:GetHealth()/npcBot:GetMaxHealth() < 0.55
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if npcTarget ~= nil then
 			return BOT_ACTION_DESIRE_LOW;
 		end
-	end	
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+	end
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 300)  )
@@ -330,7 +330,7 @@ function ConsiderFleshGolem()
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE  );
@@ -339,16 +339,16 @@ function ConsiderFleshGolem()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if  mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nRadius-400) ) 
+		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nRadius-400) )
 		then
 			return BOT_ACTION_DESIRE_HIGH;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
 end

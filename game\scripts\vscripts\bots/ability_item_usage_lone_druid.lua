@@ -8,14 +8,17 @@ local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castFGDesire = 0;
@@ -37,7 +40,7 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -47,7 +50,7 @@ function AbilityUsageThink()
 	if abilityTF == nil then abilityTF = npcBot:GetAbilityByName( "lone_druid_true_form" ) end
 	if abilityDF == nil then abilityDF = npcBot:GetAbilityByName( "lone_druid_true_form_druid" ) end
 	if abilityBC == nil then abilityBC = npcBot:GetAbilityByName( "lone_druid_true_form_battle_cry" ) end
-	
+
 	-- Consider using each ability
 	castFGDesire, castFGTarget = ConsiderFleshGolem();
 	castOPDesire = ConsiderOverpower();
@@ -55,49 +58,49 @@ function AbilityUsageThink()
 	castTFDesire = ConsiderTrueForm();
 	castDFDesire = ConsiderDruidForm();
 	castBCDesire = ConsiderBattleCry();
-	
-	if ( castFGDesire > 0 ) 
+
+	if ( castFGDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityFG );
 		return;
 	end
-	if ( castOPDesire > 0 ) 
+	if ( castOPDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityOP );
 		return;
 	end
-	if ( castESDesire > 0 ) 
+	if ( castESDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityES );
 		return;
 	end
-	if ( castTFDesire > 0 ) 
+	if ( castTFDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityTF );
 		return;
 	end
-	if ( castDFDesire > 0 ) 
+	if ( castDFDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityDF );
 		return;
 	end
-	if ( castBCDesire > 0 ) 
+	if ( castBCDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityBC );
 		return;
 	end
-	
+
 end
 
 function ConsiderFleshGolem()
 
 	-- Make sure it's castable
-	if ( not abilityFG:IsFullyCastable() ) then 
+	if ( not abilityFG:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local numBear = 0;
-	
+
 	local listBear = GetUnitList(UNIT_LIST_ALLIES);
 	for _,unit in pairs(listBear)
 	do
@@ -105,37 +108,37 @@ function ConsiderFleshGolem()
 			numBear = numBear + 1;
 		end
 	end
-	
+
 	if  numBear == 0 then
 		return BOT_ACTION_DESIRE_MODERATE;
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
 end
 
 function ConsiderOverpower()
 
 	-- Make sure it's castable
-	if ( not abilityOP:IsFullyCastable() ) then 
+	if ( not abilityOP:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local attackRange = npcBot:GetAttackRange();
-	
+
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
 	end
-	
-	-- If we're pushing a lane 
-	if  mutil.IsPushing(npcBot) 
+
+	-- If we're pushing a lane
+	if  mutil.IsPushing(npcBot)
 	then
 		local tableNearbyEnemyTowers = npcBot:GetNearbyTowers( 1000, true );
 		local tableNearbyEnemyBarracks = npcBot:GetNearbyBarracks( 1000, true );
@@ -146,8 +149,8 @@ function ConsiderOverpower()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN ) 
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( npcTarget ~= nil and string.find(npcTarget:GetUnitName(),"roshan") and mutil.IsInRange(npcTarget, npcBot, attackRange) )
@@ -155,7 +158,7 @@ function ConsiderOverpower()
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -172,7 +175,7 @@ end
 function ConsiderEarthshock()
 
 	-- Make sure it's castable
-	if ( not abilityES:IsFullyCastable() ) then 
+	if ( not abilityES:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -189,7 +192,7 @@ function ConsiderEarthshock()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
@@ -213,10 +216,10 @@ end
 function ConsiderTrueForm()
 
 	-- Make sure it's castable
-	if ( not abilityTF:IsFullyCastable() or abilityTF:IsHidden() ) then 
+	if ( not abilityTF:IsFullyCastable() or abilityTF:IsHidden() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1600, true, BOT_MODE_NONE );
@@ -224,36 +227,36 @@ function ConsiderTrueForm()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
-	if mutil.IsPushing(npcBot) 
+
+	if mutil.IsPushing(npcBot)
 	then
 		local tableNearbyEnemyTowers = npcBot:GetNearbyTowers( 800, true );
-		if tableNearbyEnemyTowers[1] ~= nil and mutil.IsInRange(tableNearbyEnemyTowers[1], npcBot, 1000) and 
+		if tableNearbyEnemyTowers[1] ~= nil and mutil.IsInRange(tableNearbyEnemyTowers[1], npcBot, 1000) and
 			abilityBC:IsFullyCastable() and abilityBC:IsHidden()
 		then
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 1000) and abilityBC:IsFullyCastable() and abilityBC:IsHidden()  ) 
+		if ( mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 1000) and abilityBC:IsFullyCastable() and abilityBC:IsHidden()  )
 		then
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
 end
 
 function ConsiderDruidForm()
 
 	-- Make sure it's castable
-	if ( not abilityDF:IsFullyCastable() or abilityDF:IsHidden() ) then 
+	if ( not abilityDF:IsFullyCastable() or abilityDF:IsHidden() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1600, true, BOT_MODE_NONE );
@@ -261,49 +264,49 @@ function ConsiderDruidForm()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
-	
-	if mutil.IsPushing(npcBot) 
+
+
+	if mutil.IsPushing(npcBot)
 	then
 		local tableNearbyEnemyTowers = npcBot:GetNearbyTowers( 800, true );
-		if tableNearbyEnemyTowers[1] ~= nil and mutil.IsInRange(tableNearbyEnemyTowers[1], npcBot, 1000) and 
+		if tableNearbyEnemyTowers[1] ~= nil and mutil.IsInRange(tableNearbyEnemyTowers[1], npcBot, 1000) and
 		   not abilityBC:IsFullyCastable() and not abilityBC:IsHidden()
 		then
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
-	if npcBot:DistanceFromFountain() < 100 and not abilityBC:IsHidden() 
+
+	if npcBot:DistanceFromFountain() < 100 and not abilityBC:IsHidden()
 	then
 		return BOT_ACTION_DESIRE_MODERATE;
 	end
-	
+
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
-	if tableNearbyEnemyHeroes == nil and not abilityBC:IsHidden() 
+	if tableNearbyEnemyHeroes == nil and not abilityBC:IsHidden()
 	then
 		return BOT_ACTION_DESIRE_MODERATE;
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 1000) and not abilityBC:IsFullyCastable() and not abilityBC:IsHidden() ) 
+		if ( mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 1000) and not abilityBC:IsFullyCastable() and not abilityBC:IsHidden() )
 		then
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
 end
 
 function ConsiderBattleCry()
 
 	-- Make sure it's castable
-	if ( not abilityBC:IsFullyCastable() or abilityBC:IsHidden() ) then 
+	if ( not abilityBC:IsFullyCastable() or abilityBC:IsHidden() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
-	if mutil.IsPushing(npcBot) 
+
+	if mutil.IsPushing(npcBot)
 	then
 		local tableNearbyEnemyTowers = npcBot:GetNearbyTowers( 800, true );
 		if tableNearbyEnemyTowers[1] ~= nil and mutil.IsInRange(tableNearbyEnemyTowers[1], npcBot, 1000)
@@ -311,7 +314,7 @@ function ConsiderBattleCry()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
@@ -320,6 +323,6 @@ function ConsiderBattleCry()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
 end

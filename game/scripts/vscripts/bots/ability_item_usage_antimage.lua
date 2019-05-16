@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castTWDesire = 0;
@@ -27,38 +30,38 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
-	
+
 	if abilityTW == nil then abilityTW = npcBot:GetAbilityByName( "antimage_blink" ); end
 	if abilityCH == nil then abilityCH = npcBot:GetAbilityByName( "antimage_mana_void" ); end
 	-- Consider using each ability
 	castTWDesire, castTWLocation = ConsiderTimeWalk();
 	castCHDesire, castCHTarget = ConsiderCorrosiveHaze();
-	
-	if ( castTWDesire > 0 ) 
+
+	if ( castTWDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilityTW, castTWLocation );
 		return;
-	end	
-	if ( castCHDesire > 0 ) 
+	end
+	if ( castCHDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityCH, castCHTarget );
 		return;
 	end
-	
+
 end
 
 
 function ConsiderTimeWalk()
 
 	-- Make sure it's castable
-	if ( abilityTW:IsFullyCastable() == false or npcBot:IsRooted() ) 
-	then 
+	if ( abilityTW:IsFullyCastable() == false or npcBot:IsRooted() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	-- Get some of its values
 	local nCastRange = abilityTW:GetSpecialValueInt("blink_range");
 	local nCastPoint = abilityTW:GetCastPoint( );
@@ -68,7 +71,7 @@ function ConsiderTimeWalk()
 		local loc = mutil.GetEscapeLoc();
 		return BOT_ACTION_DESIRE_HIGH, npcBot:GetXUnitsTowardsLocation( loc, nCastRange );
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
@@ -79,11 +82,11 @@ function ConsiderTimeWalk()
 			return BOT_ACTION_DESIRE_MODERATE, location;
 		end
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if mutil.IsValidTarget(npcTarget) and not mutil.IsInRange(npcTarget, npcBot, 2*npcBot:GetAttackRange()) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200)  
+		if mutil.IsValidTarget(npcTarget) and not mutil.IsInRange(npcTarget, npcBot, 2*npcBot:GetAttackRange()) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200)
 		then
 			local tableNearbyEnemyHeroes = npcTarget:GetNearbyHeroes( 1000, false, BOT_MODE_NONE );
 			if tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes < 2 then
@@ -91,14 +94,14 @@ function ConsiderTimeWalk()
 			end
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 end
 
 function ConsiderCorrosiveHaze()
 
 	-- Make sure it's castable
-	if ( not abilityCH:IsFullyCastable() ) then 
+	if ( not abilityCH:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -120,7 +123,7 @@ function ConsiderCorrosiveHaze()
 			end
 		end
 	end
-	
+
 
 	-- If we're in a teamfight, use it on the scariest enemy
 	if mutil.IsInTeamFight(npcBot, 1200)
@@ -132,7 +135,7 @@ function ConsiderCorrosiveHaze()
 			local EstDamage = nDamagaPerHealth * ( npcEnemy:GetMaxMana() - npcEnemy:GetMana() )
 			local TPerMana = npcEnemy:GetMana()/npcEnemy:GetMaxMana();
 			if mutil.IsValidTarget(npcEnemy) and mutil.CanCastOnTargetAdvanced(npcEnemy) and mutil.IsInRange(npcEnemy, npcBot, nCastRange+200) and
-			   ( mutil.CanKillTarget(npcEnemy, EstDamage, DAMAGE_TYPE_MAGICAL) or TPerMana < 0.01 ) 
+			   ( mutil.CanKillTarget(npcEnemy, EstDamage, DAMAGE_TYPE_MAGICAL) or TPerMana < 0.01 )
 			then
 				npcToKill = npcEnemy;
 			end
@@ -143,14 +146,14 @@ function ConsiderCorrosiveHaze()
 			return BOT_ACTION_DESIRE_HIGH, npcToKill;
 		end
 	end
-	
+
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 	for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 	do
 		local EstDamage = nDamagaPerHealth * ( npcEnemy:GetMaxMana() - npcEnemy:GetMana() )
 		local TPerMana = npcEnemy:GetMana()/npcEnemy:GetMaxMana();
 		if mutil.IsValidTarget(npcEnemy) and mutil.CanCastOnTargetAdvanced(npcEnemy) and mutil.IsInRange(npcEnemy, npcBot, nCastRange+200) and
-		   ( mutil.CanKillTarget(npcEnemy, EstDamage, DAMAGE_TYPE_MAGICAL) or TPerMana < 0.01 or npcEnemy:IsChanneling() ) 
+		   ( mutil.CanKillTarget(npcEnemy, EstDamage, DAMAGE_TYPE_MAGICAL) or TPerMana < 0.01 or npcEnemy:IsChanneling() )
 		then
 			return BOT_ACTION_DESIRE_HIGH, npcEnemy;
 		end

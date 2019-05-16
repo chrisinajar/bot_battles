@@ -11,14 +11,17 @@ local enemyStatus = require(GetScriptDirectory() .. "/enemy_status" )
 local teamStatus = require(GetScriptDirectory() .."/team_status" )
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local courierTime = 0
@@ -28,11 +31,11 @@ local castbaDesire = 0;
 local castcogsDesire = 0;
 local casthookDesire = 0;
 local castflareDesire = 0;
-local castBlinkInitDesire = 0; 
+local castBlinkInitDesire = 0;
 local castForceEnemyDesire = 0;
 function AbilityUsageThink()
 	local npcBot = GetBot();
-		
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -66,31 +69,31 @@ function AbilityUsageThink()
 	local highestDesire = castCogsDesire;
 	local desiredSkill = 1;
 
-	if ( castHookDesire > highestDesire) 
+	if ( castHookDesire > highestDesire)
 		then
 			highestDesire = castHookDesire;
 			desiredSkill = 2;
 	end
 
-	if ( castBADesire > highestDesire) 
+	if ( castBADesire > highestDesire)
 		then
 			highestDesire = castBADesire;
 			desiredSkill = 3;
 	end
 
-	if ( castFlareDesire > highestDesire) 
+	if ( castFlareDesire > highestDesire)
 		then
 			highestDesire = castFlareDesire;
 			desiredSkill = 4;
 	end
 
-	if ( castBlinkInitDesire > highestDesire) 
+	if ( castBlinkInitDesire > highestDesire)
 		then
 			highestDesire = castBlinkInitDesire;
 			desiredSkill = 6;
 	end
 
-	if ( castForceEnemyDesire > highestDesire) 
+	if ( castForceEnemyDesire > highestDesire)
 		then
 			highestDesire = castForceEnemyDesire;
 			desiredSkill = 7;
@@ -98,19 +101,19 @@ function AbilityUsageThink()
 
 	--print("desires".. castOrbDesire .. castSilenceDesire .. castPhaseDesire .. castJauntDesire .. castCoilDesire);
 	if highestDesire == 0 then return;
-    elseif desiredSkill == 1 then 
+    elseif desiredSkill == 1 then
 		npcBot:Action_UseAbility( abilityCogs );
-    elseif desiredSkill == 2 then 
+    elseif desiredSkill == 2 then
 		npcBot:Action_UseAbilityOnLocation( abilityHook, castHookTarget );
-    elseif desiredSkill == 3 then 
+    elseif desiredSkill == 3 then
 		npcBot:Action_UseAbility( abilityBA );
-    elseif desiredSkill == 4 then 
+    elseif desiredSkill == 4 then
 		npcBot:Action_UseAbilityOnLocation( abilityFlare, castFlareTarget );
-    elseif desiredSkill == 6 then 
+    elseif desiredSkill == 6 then
 		performBlinkInit( castBlinkInitTarget );
-    elseif desiredSkill == 7 then 
+    elseif desiredSkill == 7 then
 		performForceEnemy( castForceEnemyTarget );
-	end	
+	end
 
 end
 
@@ -137,7 +140,7 @@ function ConsiderAssault()
 	local npcBot = GetBot();
 
 	-- Make sure it's castable
-	if ( not abilityBA:IsFullyCastable() ) then 
+	if ( not abilityBA:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -155,14 +158,14 @@ function ConsiderAssault()
 	--------------------------------------
 
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
-	if ( npcBot:GetActiveMode() == BOT_MODE_RETREAT and npcBot:GetActiveModeDesire() >= BOT_MODE_DESIRE_HIGH ) 
+	if ( npcBot:GetActiveMode() == BOT_MODE_RETREAT and npcBot:GetActiveModeDesire() >= BOT_MODE_DESIRE_HIGH )
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 		for _,npcTarget in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcTarget, 2.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcTarget, 2.0 ) )
 			then
-				if ( CanCastBAOnTarget( npcTarget ) ) 
+				if ( CanCastBAOnTarget( npcTarget ) )
 				then
 				--print("retreat Net")
 					return BOT_ACTION_DESIRE_MODERATE
@@ -176,11 +179,11 @@ function ConsiderAssault()
 		 npcBot:GetActiveMode() == BOT_MODE_ATTACK or
 		 npcBot:GetActiveMode() == BOT_MODE_TEAM_ROAM or
 		 npcBot:GetActiveMode() == BOT_MODE_GANK or
-		 npcBot:GetActiveMode() == BOT_MODE_DEFEND_ALLY ) 
+		 npcBot:GetActiveMode() == BOT_MODE_DEFEND_ALLY )
 	then
 		local npcTarget = npcBot:GetTarget();
 
-		if ( npcTarget ~= nil  and npcTarget:IsHero() ) 
+		if ( npcTarget ~= nil  and npcTarget:IsHero() )
 		then
 			if GetUnitToUnitDistance( npcBot, npcTarget ) < nRadius then
 				return BOT_ACTION_DESIRE_MODERATE
@@ -192,9 +195,9 @@ function ConsiderAssault()
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 	for _,npcTarget in pairs( tableNearbyEnemyHeroes )
 	do
-		if ( npcTarget:IsChanneling() and GetUnitToUnitDistance( npcTarget, npcBot ) < nRadius ) 
+		if ( npcTarget:IsChanneling() and GetUnitToUnitDistance( npcTarget, npcBot ) < nRadius )
 		then
-			if ( CanCastBAOnTarget( npcTarget ) ) 
+			if ( CanCastBAOnTarget( npcTarget ) )
 			then
 			--print("retreat Net")
 				return BOT_ACTION_DESIRE_MODERATE
@@ -220,7 +223,7 @@ function ConsiderHook()
 	local npcBot = GetBot();
 
 	-- Make sure it's castable
-	if ( not abilityHook:IsFullyCastable() ) then 
+	if ( not abilityHook:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -253,7 +256,7 @@ function ConsiderHook()
 			end
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 
 end
@@ -264,32 +267,32 @@ end
 function ConsiderFlare()
 	local npcBot = GetBot();
 
-	if ( not abilityFlare:IsFullyCastable() ) then 
+	if ( not abilityFlare:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	local nRadius = abilityFlare:GetSpecialValueInt( "radius" );
 	local speed = abilityFlare:GetSpecialValueInt( "speed" );
 	local nDamage = abilityFlare:GetAbilityDamage();
 	local nCastPoint = abilityFlare:GetCastPoint();
 
 	-- farming
-	if ( npcBot:GetActiveMode() == BOT_MODE_LANING and npcBot:GetMana() > (npcBot:GetMaxMana() * .5)) 
+	if ( npcBot:GetActiveMode() == BOT_MODE_LANING and npcBot:GetMana() > (npcBot:GetMaxMana() * .5))
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 		local npcTarget = tableNearbyEnemyHeroes[1];
 
-		if ( npcTarget ~= nil ) 
+		if ( npcTarget ~= nil )
 		then
 			local locationAoE = npcBot:FindAoELocation( true, false, npcTarget:GetLocation(), nRadius * .8, nRadius, 0.0, 20000 );
 			--print(locationAoE.count)
-			if ( locationAoE.count >= 4 ) 
+			if ( locationAoE.count >= 4 )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, locationAoE.targetloc;
 			end
 		end
 
-		
+
 	end
 
 	local npcTarget = npcBot:GetTarget();
@@ -306,9 +309,9 @@ function ConsiderFlare()
 		 npcBot:GetActiveMode() == BOT_MODE_TEAM_ROAM or
 		 npcBot:GetActiveMode() == BOT_MODE_GANK or
 		 npcBot:GetActiveMode() == BOT_MODE_ATTACK or
-		 npcBot:GetActiveMode() == BOT_MODE_DEFEND_ALLY ) 
+		 npcBot:GetActiveMode() == BOT_MODE_DEFEND_ALLY )
 	then
-		if ( npcTarget ~= nil and npcTarget:IsHero() and npcTarget:CanBeSeen() ) 
+		if ( npcTarget ~= nil and npcTarget:IsHero() and npcTarget:CanBeSeen() )
 		then
 			local distance = GetUnitToUnitDistance(npcTarget, npcBot);
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetExtrapolatedLocation( nCastPoint + ( distance / speed ) );
@@ -329,10 +332,10 @@ end
 
 ----------------------------------------------------------------------------------------------------
 
-function ConsiderCogs()	
-	
+function ConsiderCogs()
+
 	-- Make sure it's castable
-	if ( not abilityCogs:IsFullyCastable() ) then 
+	if ( not abilityCogs:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -342,7 +345,7 @@ function ConsiderCogs()
 	local nActivationRadius = abilityCogs:GetSpecialValueInt( "trigger_distance" )
 	local nDamage = abilityCogs:GetAbilityDamage();
 
-	
+
 	--[[if npcBot:DistanceFromFountain() > 1300 then
 		return BOT_ACTION_DESIRE_ABSOLUTE
 	end]]--
@@ -351,13 +354,13 @@ function ConsiderCogs()
 
 	--if we are retreating and enemy will be outside cogs
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
-	if ( npcBot:GetActiveMode() == BOT_MODE_RETREAT and npcBot:GetActiveModeDesire() >= BOT_MODE_DESIRE_HIGH ) 
+	if ( npcBot:GetActiveMode() == BOT_MODE_RETREAT and npcBot:GetActiveModeDesire() >= BOT_MODE_DESIRE_HIGH )
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 		local tableNearbyAllyHeroes = npcBot:GetNearbyHeroes( nRadius, false, BOT_MODE_NONE );
-		if ( tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes >= 1 and tableNearbyEnemyHeroes[1] ~= nil ) 
+		if ( tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes >= 1 and tableNearbyEnemyHeroes[1] ~= nil )
 		then
-			if ( GetUnitToUnitDistance(npcBot,tableNearbyEnemyHeroes[1] ) > nRadius+100 and tableNearbyAllyHeroes ~= nil and #tableNearbyAllyHeroes < 2 ) 
+			if ( GetUnitToUnitDistance(npcBot,tableNearbyEnemyHeroes[1] ) > nRadius+100 and tableNearbyAllyHeroes ~= nil and #tableNearbyAllyHeroes < 2 )
 			then
 				return BOT_ACTION_DESIRE_MODERATE
 			end
@@ -369,10 +372,10 @@ function ConsiderCogs()
 		 npcBot:GetActiveMode() == BOT_MODE_TEAM_ROAM or
 		 npcBot:GetActiveMode() == BOT_MODE_GANK or
 		 npcBot:GetActiveMode() == BOT_MODE_ATTACK or
-		 npcBot:GetActiveMode() == BOT_MODE_DEFEND_ALLY ) 
+		 npcBot:GetActiveMode() == BOT_MODE_DEFEND_ALLY )
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( npcTarget ~= nil and npcTarget:IsHero() and GetUnitToUnitDistance( npcTarget, npcBot ) < nRadius) 
+		if ( npcTarget ~= nil and npcTarget:IsHero() and GetUnitToUnitDistance( npcTarget, npcBot ) < nRadius)
 		then
 			local distance = GetUnitToUnitDistance(npcTarget, npcBot);
 			return BOT_ACTION_DESIRE_MODERATE;
@@ -383,15 +386,15 @@ function ConsiderCogs()
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1300, true, BOT_MODE_NONE );
 	local tableNearbyFriendlyTowers = npcBot:GetNearbyTowers( 1300, false );
 	for _,v in pairs(tableNearbyEnemyHeroes) do
-		local tower = tableNearbyFriendlyTowers[1];	
+		local tower = tableNearbyFriendlyTowers[1];
 		if tower ~= nil then
-			if ( GetUnitToUnitDistance( v, tower ) < 700 and GetUnitToUnitDistance( v, npcBot ) < nRadius ) 
+			if ( GetUnitToUnitDistance( v, tower ) < 700 and GetUnitToUnitDistance( v, npcBot ) < nRadius )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
 
 end
@@ -404,8 +407,8 @@ function ConsiderBlinkInit()
 
 	-- Make sure it's castable
 	if ( not abilityCogs:IsFullyCastable() or
-		not abilityBA:IsFullyCastable()) 
-	then 
+		not abilityBA:IsFullyCastable())
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -417,9 +420,9 @@ function ConsiderBlinkInit()
 
 	local locationAoE = npcBot:FindAoELocation( true, false, npcBot:GetLocation(), 1300, nRadius, 0, 0 );
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1300, true, BOT_MODE_NONE );
-	local npcTarget = tableNearbyEnemyHeroes[1];	
+	local npcTarget = tableNearbyEnemyHeroes[1];
 	if npcTarget ~= nil then
-		if ( locationAoE.count >= 3 and GetUnitToLocationDistance( npcTarget, locationAoE.targetloc ) < nRadius ) 
+		if ( locationAoE.count >= 3 and GetUnitToLocationDistance( npcTarget, locationAoE.targetloc ) < nRadius )
 		then
 			return BOT_ACTION_DESIRE_MODERATE, locationAoE.targetloc;
 		end
@@ -434,8 +437,8 @@ function ConsiderForceEnemy()
 	local npcBot = GetBot();
 
 	-- Make sure it's castable
-	if ( itemForce == "item_force_staff" or not itemForce:IsFullyCastable()) 
-	then 
+	if ( itemForce == "item_force_staff" or not itemForce:IsFullyCastable())
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -446,9 +449,9 @@ function ConsiderForceEnemy()
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 	local tableNearbyFriendlyTowers = npcBot:GetNearbyTowers( 1000, false );
 	local npcTarget = tableNearbyEnemyHeroes[1];
-	local tower = tableNearbyFriendlyTowers[1];	
+	local tower = tableNearbyFriendlyTowers[1];
 	if npcTarget ~= nil and tower ~= nil then
-		if ( GetUnitToUnitDistance( npcTarget, tower ) < 1000 ) 
+		if ( GetUnitToUnitDistance( npcTarget, tower ) < 1000 )
 		then
 			if(npcTarget:IsFacingUnit( tower, 15 )) then
 

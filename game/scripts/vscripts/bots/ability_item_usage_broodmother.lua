@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castSSDesire = 0;
@@ -42,25 +45,25 @@ function AbilityUsageThink()
 	castSSDesire, castSSTarget = ConsiderSpawnSpiderlings();
 	castSWDesire, castSWLocation = ConsiderSpinWeb();
 	castIHDesire = ConsiderInsatiableHunger();
-	
-	
-	if ( castSSDesire > 0 ) 
+
+
+	if ( castSSDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilitySS, castSSTarget );
 		return;
 	end
-	if ( castSWDesire > 0 and DotaTime() >= timeCast + 0.8 ) 
+	if ( castSWDesire > 0 and DotaTime() >= timeCast + 0.8 )
 	then
 		npcBot:ActionPush_UseAbilityOnLocation( abilitySW, castSWLocation );
 		timeCast = DotaTime();
 		return;
 	end
-	if ( castIHDesire > 0 ) 
+	if ( castIHDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityIH );
 		return;
 	end
-	
+
 end
 
 function LocationOverlapWeb(location, nRadius)
@@ -95,7 +98,7 @@ end
 function ConsiderSpawnSpiderlings()
 
 	-- Make sure it's castable
-	if ( not abilitySS:IsFullyCastable() ) then 
+	if ( not abilitySS:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -108,10 +111,10 @@ function ConsiderSpawnSpiderlings()
 	--------------------------------------
 	-- Mode based usage
 	--------------------------------------
-	
+
 	-- If a mode has set a target, and we can kill them, do it
 	local npcTarget = npcBot:GetTarget();
-	if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.CanKillTarget(npcTarget, nDamage, DAMAGE_TYPE_MAGICAL) and 
+	if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.CanKillTarget(npcTarget, nDamage, DAMAGE_TYPE_MAGICAL) and
 	   mutil.IsInRange(npcTarget, npcBot, nCastRange + 200)
 	then
 		return BOT_ACTION_DESIRE_HIGH, npcTarget;
@@ -119,7 +122,7 @@ function ConsiderSpawnSpiderlings()
 
 	-- If we're going after someone
 	if  npcBot:GetActiveMode() == BOT_MODE_LANING or
-		mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot) 
+		mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot)
 	then
 		local tableNearbyEnemyCreeps = npcBot:GetNearbyLaneCreeps ( nCastRange + 200, true );
 		for _,creep in pairs(tableNearbyEnemyCreeps)
@@ -129,7 +132,7 @@ function ConsiderSpawnSpiderlings()
 			end
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 
 end
@@ -137,8 +140,8 @@ end
 function ConsiderSpinWeb()
 
 	-- Make sure it's castable
-	if ( not abilitySW:IsFullyCastable() or npcBot:IsCastingAbility() or abilitySW:IsInAbilityPhase() ) 
-	then 
+	if ( not abilitySW:IsFullyCastable() or npcBot:IsCastingAbility() or abilitySW:IsInAbilityPhase() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -147,7 +150,7 @@ function ConsiderSpinWeb()
 	local nRadius = abilitySW:GetSpecialValueInt( "radius" );
 	local nCastRange = 900;
 	local nCastPoint = abilitySW:GetCastPoint( );
-    
+
 	--[[if DotaTime() > 15 and npcBot:DistanceFromFountain() > 1000 and not LocationOverlapWeb( npcBot:GetXUnitsInFront(nCastRange), nRadius ) then
 		return BOT_ACTION_DESIRE_MODERATE, npcBot:GetXUnitsInFront(nCastRange);
 	end]]--
@@ -155,25 +158,25 @@ function ConsiderSpinWeb()
 	then
 		return BOT_ACTION_DESIRE_HIGH, npcBot:GetLocation();
 	end
-	
+
 	--------------------------------------
 	-- Mode based usage
-	--------------------------------------	
+	--------------------------------------
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) and 
-				not LocationOverlapWeb(GetTowardsFountainLocation( npcBot:GetLocation(), nCastRange ), nRadius) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) and
+				not LocationOverlapWeb(GetTowardsFountainLocation( npcBot:GetLocation(), nCastRange ), nRadius) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, GetTowardsFountainLocation( npcBot:GetLocation(), nCastRange );
 			end
 		end
 	end
 
-	if mutil.IsPushing(npcBot) 
+	if mutil.IsPushing(npcBot)
 	then
 		local lanecreeps = npcBot:GetNearbyLaneCreeps(nCastRange, true);
 		local NearbyTower = npcBot:GetNearbyTowers(nRadius, true);
@@ -181,36 +184,36 @@ function ConsiderSpinWeb()
 		if locationAoE.count >= 3 and #lanecreeps >= 3 and not LocationOverlapWeb(locationAoE.targetloc, nRadius) then
 			return BOT_ACTION_DESIRE_MODERATE, locationAoE.targetloc;
 		end
-		if NearbyTower[1] ~= nil and not NearbyTower[1]:IsInvulnerable() and 
+		if NearbyTower[1] ~= nil and not NearbyTower[1]:IsInvulnerable() and
 			not LocationOverlapWeb(NearbyTower[1]:GetLocation(), nRadius)
 		then
 			return BOT_ACTION_DESIRE_MODERATE, NearbyTower[1]:GetLocation();
 		end
 	end
-	
+
 	if mutil.IsDefending(npcBot)
 	then
 		local NearbyTower = npcBot:GetNearbyTowers(nRadius, false);
-		if NearbyTower[1] ~= nil and not NearbyTower[1]:IsInvulnerable() and 
+		if NearbyTower[1] ~= nil and not NearbyTower[1]:IsInvulnerable() and
 			not LocationOverlapWeb(NearbyTower[1]:GetLocation(), nRadius)
 		then
 			return BOT_ACTION_DESIRE_MODERATE, NearbyTower[1]:GetLocation();
 		end
 	end
-	
+
 	if npcBot:GetActiveMode() == BOT_MODE_LANING then
 		local tableNearbyEnemyCreeps = npcBot:GetNearbyLaneCreeps( 800, true );
 		if tableNearbyEnemyCreeps ~= nil and #tableNearbyEnemyCreeps >= 4 and not LocationOverlapWeb(npcBot:GetLocation(), nRadius) then
 			return BOT_MODE_DESIRE_MODERATE, npcBot:GetLocation();
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if  mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange) and 
-			not LocationOverlapWeb(npcTarget:GetExtrapolatedLocation( nCastPoint ), nRadius)   
+		if  mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange) and
+			not LocationOverlapWeb(npcTarget:GetExtrapolatedLocation( nCastPoint ), nRadius)
 		then
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetExtrapolatedLocation( nCastPoint );
 		end
@@ -222,12 +225,12 @@ end
 function ConsiderInsatiableHunger()
 
 	-- Make sure it's castable
-	if ( not abilityIH:IsFullyCastable() ) then 
+	if ( not abilityIH:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local nAttackRange = npcBot:GetAttackRange();
-	
+
 	--------------------------------------
 	-- Mode based usage
 	--------------------------------------

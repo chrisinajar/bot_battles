@@ -7,14 +7,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castWBDesire = 0;
@@ -32,7 +35,7 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -40,32 +43,32 @@ function AbilityUsageThink()
 	if abilityCH == nil then abilityCH = npcBot:GetAbilityByName( "night_stalker_crippling_fear" ) end
 	if abilityE == nil then abilityE = npcBot:GetAbilityByName( "night_stalker_hunter_in_the_night" ) end
 	if abilityWB == nil then abilityWB = npcBot:GetAbilityByName( "night_stalker_darkness" ) end
-	
+
 	-- Consider using each ability
 	castCH1Desire, castCH1Target = ConsiderCorrosiveHaze1();
 	castCHDesire, castCHTarget = ConsiderCorrosiveHaze();
 	castEDesire = ConsiderE();
 	castWBDesire = ConsiderWildBoar();
 
-	if ( castCH1Desire > 0 ) 
+	if ( castCH1Desire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityCH1, castCH1Target );
 		return;
 	end
-	
-	if ( castCHDesire > 0 ) 
+
+	if ( castCHDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityCH, castCHTarget );
 		return;
 	end
-	
-	if ( castWBDesire > 0  ) 
+
+	if ( castWBDesire > 0  )
 	then
 		npcBot:Action_UseAbility( abilityWB );
 		return;
 	end
-	
-	if ( castEDesire > 0  ) 
+
+	if ( castEDesire > 0  )
 	then
 		npcBot:Action_UseAbility( abilityE );
 		return;
@@ -80,32 +83,32 @@ end
 function ConsiderWildBoar()
 
 	-- Make sure it's castable
-	if ( not abilityWB:IsFullyCastable() ) 
-	then 
+	if ( not abilityWB:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local tableNearbyAllyHeroes = npcBot:GetNearbyHeroes( 1000, false, BOT_MODE_NONE );
 	if #tableNearbyAllyHeroes == 0 then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local distance = 600;
-	
-	if mutil.IsInTeamFight(npcBot, 1200) and not IsNightTime() 
+
+	if mutil.IsInTeamFight(npcBot, 1200) and not IsNightTime()
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 600, true, BOT_MODE_NONE );
-		if tableNearbyEnemyHeroes ~= nil 
+		if tableNearbyEnemyHeroes ~= nil
 		then
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, distance) and not IsNightTime() ) 
+		if ( mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, distance) and not IsNightTime() )
 		then
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
@@ -117,33 +120,33 @@ end
 function ConsiderE()
 
 	-- Make sure it's castable
-	if ( not abilityE:IsFullyCastable() ) 
-	then 
+	if ( not abilityE:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local distance = 1000;
-	
+
 	if mutil.IsStuck(npcBot) and IsNightTime()
 	then
 		return BOT_ACTION_DESIRE_HIGH;
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( distance, true, BOT_MODE_NONE );
-		if IsNightTime() and npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and not IsLocationPassable(npcBot:GetXUnitsInFront(300)) 
+		if IsNightTime() and npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and not IsLocationPassable(npcBot:GetXUnitsInFront(300))
 		then
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, distance) and IsNightTime() and not IsLocationPassable(npcBot:GetXUnitsInFront(300)) ) 
+		if ( mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, distance) and IsNightTime() and not IsLocationPassable(npcBot:GetXUnitsInFront(300)) )
 		then
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
@@ -156,7 +159,7 @@ end
 function ConsiderCorrosiveHaze()
 
 	-- Make sure it's castable
-	if ( not abilityCH:IsFullyCastable() ) then 
+	if ( not abilityCH:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -166,13 +169,13 @@ function ConsiderCorrosiveHaze()
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange + 200, true, BOT_MODE_NONE );
 	for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 	do
-		if ( npcEnemy:IsChanneling()  and mutil.CanCastOnNonMagicImmune(npcEnemy)  ) 
+		if ( npcEnemy:IsChanneling()  and mutil.CanCastOnNonMagicImmune(npcEnemy)  )
 		then
 			return BOT_ACTION_DESIRE_HIGH, npcEnemy;
 		end
 	end
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange)  )
@@ -180,20 +183,20 @@ function ConsiderCorrosiveHaze()
 			return BOT_ACTION_DESIRE_LOW, npcTarget;
 		end
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy)  ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy)  )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, npcEnemy;
 			end
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -203,9 +206,9 @@ function ConsiderCorrosiveHaze()
 			return BOT_ACTION_DESIRE_HIGH, npcTarget;
 		end
 	end
-	
+
 	-- If we're going after someone
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( npcTarget ~= nil and mutil.CanCastOnNonMagicImmune(npcTarget) )
@@ -248,7 +251,7 @@ end
 function ConsiderCorrosiveHaze1()
 
 	-- Make sure it's castable
-	if ( not abilityCH1:IsFullyCastable() ) then 
+	if ( not abilityCH1:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -258,13 +261,13 @@ function ConsiderCorrosiveHaze1()
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange + 200, true, BOT_MODE_NONE );
 	for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 	do
-		if ( npcEnemy:IsChanneling() and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+		if ( npcEnemy:IsChanneling() and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 		then
 			return BOT_ACTION_DESIRE_HIGH, npcEnemy;
 		end
 	end
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange)  )
@@ -272,25 +275,25 @@ function ConsiderCorrosiveHaze1()
 			return BOT_ACTION_DESIRE_LOW, npcTarget;
 		end
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, npcEnemy;
 			end
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200) 
+		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200)
 		then
 			return BOT_ACTION_DESIRE_HIGH, npcTarget;
 		end

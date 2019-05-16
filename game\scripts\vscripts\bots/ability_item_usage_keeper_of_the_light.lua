@@ -42,13 +42,11 @@ function AbilityUsageThink()
 	if npcBot == nil then npcBot = GetBot(); end
 	-- Check if we're already using an ability
 
-	if abilityFB == nil then abilityFB = npcBot:GetAbilityByName( "keeper_of_the_light_mana_leak" ) end
 	if abilityCS == nil then abilityCS = npcBot:GetAbilityByName( "keeper_of_the_light_illuminate" ) end
-	if abilityCSS == nil then abilityCSS = npcBot:GetAbilityByName( "keeper_of_the_light_spirit_form_illuminate" ) end
+	-- if abilityCSS == nil then abilityCSS = npcBot:GetAbilityByName( "keeper_of_the_light_spirit_form_illuminate" ) end
 	if abilityCS2 == nil then abilityCS2 = npcBot:GetAbilityByName( "keeper_of_the_light_blinding_light" ) end
 	if abilityBL == nil then abilityBL = npcBot:GetAbilityByName( "keeper_of_the_light_chakra_magic" ) end
-	if abilityFG == nil then abilityFG = npcBot:GetAbilityByName( "keeper_of_the_light_spirit_form" ) end
-	if abilityRC == nil then abilityRC = npcBot:GetAbilityByName( "keeper_of_the_light_recall" ) end
+	if abilityCS3 == nil then abilityCS3 = npcBot:GetAbilityByName( "keeper_of_the_light_will_o_wisp" ) end
 
 	CancelIlmDesire = ConsiderCancelIlm();
 
@@ -60,26 +58,22 @@ function AbilityUsageThink()
 	if mutil.CanNotUseAbility(npcBot)  or npcBot:NumQueuedActions() > 0  then return end
 
 	-- Consider using each ability
-	castFBDesire, castFBTarget = ConsiderFireblast();
 	castCSDesire, castCSLocation = ConsiderChrono();
-	castCSSDesire, castCSSLocation = ConsiderChronoS();
-	castCS2Desire, castCS2Location = ConsiderChrono2();
+	-- castCSSDesire, castCSSLocation = ConsiderChronoS();
+  castCS2Desire, castCS2Location = ConsiderChrono2();
+	castCS3Desire, castCS3Location = ConsiderChrono3();
 	castBLDesire, castBLTarget = ConsiderBloodlust();
-	castFGDesire, castFGTarget = ConsiderFleshGolem();
-	castRCDesire, castRCTarget = ConsiderRecall();
 
-	if ( castFGDesire > 0 )
-	then
-
-		npcBot:Action_UseAbility( abilityFG );
-		return;
-	end
-
-	if ( castCS2Desire > 0 )
-	then
-		npcBot:Action_UseAbilityOnLocation( abilityCS2, castCS2Location );
-		return;
-	end
+  if ( castCS2Desire > 0 )
+  then
+    npcBot:Action_UseAbilityOnLocation( abilityCS2, castCS2Location );
+    return;
+  end
+  if ( castCS3Desire > 0 )
+  then
+    npcBot:Action_UseAbilityOnLocation( abilityCS3, castCS3Location );
+    return;
+  end
 
 	if ( castFBDesire > 0 )
 	then
@@ -94,25 +88,17 @@ function AbilityUsageThink()
 		npcBot:ActionQueue_Delay( 0.5 );
 		return;
 	end
-	if ( castCSSDesire > 0 )
-	then
-		npcBot:Action_UseAbilityOnLocation( abilityCSS, castCSSLocation );
-		return;
-	end
+	-- if ( castCSSDesire > 0 )
+	-- then
+	-- 	npcBot:Action_UseAbilityOnLocation( abilityCSS, castCSSLocation );
+	-- 	return;
+	-- end
 
 	if ( castBLDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityBL, castBLTarget );
 		return;
 	end
-
-	if ( castRCDesire > 0 )
-	then
-		npcBot:Action_UseAbilityOnEntity( abilityRC, castRCTarget );
-		return;
-	end
-
-
 
 end
 
@@ -161,7 +147,7 @@ end
 function ConsiderChrono()
 
 	-- Make sure it's castable
-	if ( npcBot:HasScepter() or npcBot:HasModifier("modifier_keeper_of_the_light_spirit_form") or not abilityCS:IsFullyCastable() )
+	if not abilityCS:IsFullyCastable()
 	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
@@ -354,45 +340,88 @@ end
 
 function ConsiderChrono2()
 
-	-- Make sure it's castable
-	if ( not npcBot:HasModifier("modifier_keeper_of_the_light_spirit_form") or abilityCS2:IsHidden() or not abilityCS2:IsFullyCastable() )
-	then
-		return BOT_ACTION_DESIRE_NONE, 0;
-	end
+  -- Make sure it's castable
+  if ( not npcBot:HasModifier("modifier_keeper_of_the_light_spirit_form") or abilityCS2:IsHidden() or not abilityCS2:IsFullyCastable() )
+  then
+    return BOT_ACTION_DESIRE_NONE, 0;
+  end
 
-	-- Get some of its values
-	local nRadius = abilityCS2:GetSpecialValueInt("radius");
-	local nCastRange = abilityCS2:GetCastRange();
-	local nCastPoint = abilityCS2:GetCastPoint();
+  -- Get some of its values
+  local nRadius = abilityCS2:GetSpecialValueInt("radius");
+  local nCastRange = abilityCS2:GetCastRange();
+  local nCastPoint = abilityCS2:GetCastPoint();
 
-	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
-	if mutil.IsRetreating(npcBot)
-	then
-		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
-		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
-		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
-			then
-				if GetUnitToUnitDistance(npcEnemy, npcBot) < nRadius then
-					return BOT_ACTION_DESIRE_LOW, npcBot:GetLocation()
-				else
-					return BOT_ACTION_DESIRE_LOW, npcEnemy:GetExtrapolatedLocation(nCastPoint)
-				end
-			end
-		end
-	end
+  -- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
+  if mutil.IsRetreating(npcBot)
+  then
+    local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
+    for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
+    do
+      if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
+      then
+        if GetUnitToUnitDistance(npcEnemy, npcBot) < nRadius then
+          return BOT_ACTION_DESIRE_LOW, npcBot:GetLocation()
+        else
+          return BOT_ACTION_DESIRE_LOW, npcEnemy:GetExtrapolatedLocation(nCastPoint)
+        end
+      end
+    end
+  end
 
-	if mutil.IsGoingOnSomeone(npcBot)
-	then
-		local npcTarget = npcBot:GetTarget();
-		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange - (nRadius / 2))
-		then
-			return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetExtrapolatedLocation(nCastPoint);
-		end
-	end
+  if mutil.IsGoingOnSomeone(npcBot)
+  then
+    local npcTarget = npcBot:GetTarget();
+    if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange - (nRadius / 2))
+    then
+      return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetExtrapolatedLocation(nCastPoint);
+    end
+  end
 
 --
-	return BOT_ACTION_DESIRE_NONE;
+  return BOT_ACTION_DESIRE_NONE;
+end
+
+function ConsiderChrono3()
+
+  -- Make sure it's castable
+  if abilityCS3:IsHidden() or not abilityCS3:IsFullyCastable()
+  then
+    return BOT_ACTION_DESIRE_NONE, 0;
+  end
+
+  -- Get some of its values
+  local nRadius = abilityCS3:GetSpecialValueInt("radius");
+  local nCastRange = abilityCS3:GetCastRange();
+  local nCastPoint = abilityCS3:GetCastPoint();
+
+  -- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
+  if mutil.IsRetreating(npcBot)
+  then
+    local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
+    for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
+    do
+      if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
+      then
+        if GetUnitToUnitDistance(npcEnemy, npcBot) < nRadius then
+          return BOT_ACTION_DESIRE_LOW, npcBot:GetLocation()
+        else
+          return BOT_ACTION_DESIRE_LOW, npcEnemy:GetExtrapolatedLocation(nCastPoint)
+        end
+      end
+    end
+  end
+
+  if mutil.IsGoingOnSomeone(npcBot)
+  then
+    local npcTarget = npcBot:GetTarget();
+    if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange - (nRadius / 2))
+    then
+      return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetExtrapolatedLocation(nCastPoint);
+    end
+  end
+
+--
+  return BOT_ACTION_DESIRE_NONE;
 end
 
 

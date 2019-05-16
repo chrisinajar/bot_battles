@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castGSDesire = 0;
@@ -29,11 +32,11 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if ( npcBot:IsUsingAbility() or npcBot:IsChanneling() or npcBot:IsSilenced()  ) then return end
 
-	if abilityGS == nil then abilityGS = npcBot:GetAbilityByName( "slardar_sprint" ) end 
+	if abilityGS == nil then abilityGS = npcBot:GetAbilityByName( "slardar_sprint" ) end
 	if abilitySC == nil then abilitySC = npcBot:GetAbilityByName( "slardar_slithereen_crush" ) end
 	if abilityCH == nil then abilityCH = npcBot:GetAbilityByName( "slardar_amplify_damage" ) end
 
@@ -41,21 +44,21 @@ function AbilityUsageThink()
 	castGSDesire = ConsiderGuardianSprint();
 	castSCDesire = ConsiderSlithereenCrush();
 	castCHDesire, castCHTarget = ConsiderCorrosiveHaze();
-	
 
-	if ( castCHDesire > castGSDesire and castCHDesire > castSCDesire ) 
+
+	if ( castCHDesire > castGSDesire and castCHDesire > castSCDesire )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityCH, castCHTarget );
 		return;
 	end
 
-	if ( castSCDesire > 0 ) 
+	if ( castSCDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilitySC );
 		return;
 	end
-	
-	if ( castGSDesire > 0 ) 
+
+	if ( castGSDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityGS );
 		return;
@@ -66,16 +69,16 @@ end
 function ConsiderGuardianSprint()
 
 	-- Make sure it's castable
-	if ( not abilityGS:IsFullyCastable() ) then 
+	if ( not abilityGS:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		return BOT_ACTION_DESIRE_MODERATE;
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -89,7 +92,7 @@ end
 function ConsiderSlithereenCrush()
 
 	-- Make sure it's castable
-	if ( not abilitySC:IsFullyCastable() ) then 
+	if ( not abilitySC:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -109,14 +112,14 @@ function ConsiderSlithereenCrush()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
 	end
 
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcBot, npcTarget, nRadius)  )
@@ -124,7 +127,7 @@ function ConsiderSlithereenCrush()
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -142,7 +145,7 @@ end
 function ConsiderCorrosiveHaze()
 
 	-- Make sure it's castable
-	if ( not abilityCH:IsFullyCastable() ) then 
+	if ( not abilityCH:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -153,15 +156,15 @@ function ConsiderCorrosiveHaze()
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200) 
-		   and not npcTarget:HasModifier("modifier_slardar_amplify_damage") 
+		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200)
+		   and not npcTarget:HasModifier("modifier_slardar_amplify_damage")
 		then
 			return BOT_ACTION_DESIRE_HIGH, npcTarget;
 		end
 	end
-	
+
 	-- If we're going after someone
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( npcTarget ~= nil and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange)

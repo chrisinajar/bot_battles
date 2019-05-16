@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castDPDesire = 0;
@@ -43,25 +46,25 @@ function AbilityUsageThink()
 	castDPDesire = ConsiderDarkPact();
 	castPCDesire = ConsiderPounce();
 	castPWDesire, castPWLocation = ConsiderPlagueWard();
-	
+
 	if ( castPWDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilityPW, castPWLocation );
 		return;
 	end
-	
-	if ( castDPDesire > 0 ) 
+
+	if ( castDPDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityDP );
 		return;
 	end
-	
-	if ( castPCDesire > 0 ) 
+
+	if ( castPCDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityPC );
 		return;
 	end
-	
+
 
 end
 
@@ -69,7 +72,7 @@ end
 function ConsiderDarkPact()
 
 	-- Make sure it's castable
-	if ( not abilityDP:IsFullyCastable() ) then 
+	if ( not abilityDP:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -86,25 +89,25 @@ function ConsiderDarkPact()
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 	for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 	do
-		if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) ) 
+		if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) )
 		then
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
 	end
 
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nRange)  )
@@ -112,7 +115,7 @@ function ConsiderDarkPact()
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
+
 	-- If we're farming and can kill 3+ creeps with LSA
 	if mutil.IsPushing(npcBot) and npcBot:GetMana()/npcBot:GetMaxMana() > 0.65
 	then
@@ -121,7 +124,7 @@ function ConsiderDarkPact()
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -140,7 +143,7 @@ end
 function ConsiderPounce()
 
 	-- Make sure it's castable
-	if ( not abilityPC:IsFullyCastable() ) then 
+	if ( not abilityPC:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -160,14 +163,14 @@ function ConsiderPounce()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
 	end
 
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange)  )
@@ -175,7 +178,7 @@ function ConsiderPounce()
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -198,7 +201,7 @@ function ConsiderPlagueWard()
 	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	local mandateTrapLoc = {
 		Vector(-982, 688),
 		Vector(-230, 15),
@@ -209,7 +212,7 @@ function ConsiderPlagueWard()
 		Vector(-2350, 177),
 		Vector(980, 2514)
 	}
-	
+
 	-- Get some of its values
 	--local nRadius abilityPW:GetSpecialValueInt( "radius" );
 
@@ -265,7 +268,7 @@ function ConsiderPlagueWard()
 			end
 			if not exist then
 				return BOT_ACTION_DESIRE_LOW, loc;
-			end	
+			end
 		end
 	end
 	]]--

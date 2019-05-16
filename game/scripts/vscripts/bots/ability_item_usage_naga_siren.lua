@@ -7,14 +7,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castCH1Desire = 0;
@@ -33,7 +36,7 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -48,40 +51,40 @@ function AbilityUsageThink()
 	castSCDesire = ConsiderSlithereenCrush();
 	castOGDesire, castOGTarget = ConsiderOvergrowth();
 	castOGSDesire = ConsiderSongStop();
-	
-	if ( castOGSDesire > 0 ) 
+
+	if ( castOGSDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityOGS );
 		return;
 	end
-	if ( castOGDesire > 0 ) 
+	if ( castOGDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityOG );
 		return;
 	end
-	if ( castSCDesire > 0 ) 
+	if ( castSCDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilitySC );
 		return;
 	end
-	if ( castCH1Desire > 0 ) 
+	if ( castCH1Desire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityCH1, castCH1Target );
 		return;
 	end
-	if ( castWBDesire > 0 ) 
+	if ( castWBDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityWB );
 		return;
 	end
-	
+
 
 end
 
 function ConsiderCorrosiveHaze1()
 
 	-- Make sure it's castable
-	if ( not abilityCH1:IsFullyCastable() ) then 
+	if ( not abilityCH1:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -91,25 +94,25 @@ function ConsiderCorrosiveHaze1()
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange + 200, true, BOT_MODE_NONE );
 	for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 	do
-		if ( npcEnemy:IsChanneling() and mutil.CanCastOnNonMagicImmune(npcEnemy)  ) 
+		if ( npcEnemy:IsChanneling() and mutil.CanCastOnNonMagicImmune(npcEnemy)  )
 		then
 			return BOT_ACTION_DESIRE_HIGH, npcEnemy;
 		end
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, npcEnemy;
 			end
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -153,7 +156,7 @@ end
 function ConsiderSlithereenCrush()
 
 	-- Make sure it's castable
-	if ( not abilitySC:IsFullyCastable() ) then 
+	if ( not abilitySC:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -166,7 +169,7 @@ function ConsiderSlithereenCrush()
 	--------------------------------------
 	-- Mode based usage
 	--------------------------------------
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nRadius)  )
@@ -174,28 +177,28 @@ function ConsiderSlithereenCrush()
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
-	if npcBot:GetActiveMode() == BOT_MODE_FARM 
+
+	if npcBot:GetActiveMode() == BOT_MODE_FARM
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if npcTarget ~= nil and not npcTarget:IsBuilding() then
 			return BOT_ACTION_DESIRE_LOW;
 		end
-	end	
-	
+	end
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
 	end
-	
+
 	if mutil.IsPushing(npcBot)
 	then
 		local tableNearbyEnemyCreeps = npcBot:GetNearbyCreeps( nRadius, true );
@@ -203,7 +206,7 @@ function ConsiderSlithereenCrush()
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -223,30 +226,30 @@ end
 function ConsiderOvergrowth()
 
 	-- Make sure it's castable
-	if ( not abilityOG:IsFullyCastable() or abilityOG:IsHidden() ) then 
+	if ( not abilityOG:IsFullyCastable() or abilityOG:IsHidden() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local nRadius = abilityOG:GetSpecialValueInt( "radius" );
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
 			then
 				return BOT_ACTION_DESIRE_HIGH;
 			end
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and not mutil.IsInRange(npcTarget, npcBot, 800) and mutil.IsInRange(npcTarget, npcBot, 1300) ) 
+		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and not mutil.IsInRange(npcTarget, npcBot, 800) and mutil.IsInRange(npcTarget, npcBot, 1300) )
 		then
 			local allies = npcTarget:GetNearbyHeroes(600, true, BOT_MODE_NONE)
 			if not npcTarget:WasRecentlyDamagedByAnyHero(3.0) and #allies == 0 then
@@ -254,39 +257,39 @@ function ConsiderOvergrowth()
 			end
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
 end
 
 function ConsiderTempestDouble()
 
 	-- Make sure it's castable
-	if ( not abilityWB:IsFullyCastable() ) 
-	then 
+	if ( not abilityWB:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 600, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
 	end
-	
-	if npcBot:GetActiveMode() == BOT_MODE_FARM 
+
+	if npcBot:GetActiveMode() == BOT_MODE_FARM
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if npcTarget ~= nil then
 			return BOT_ACTION_DESIRE_LOW;
 		end
-	end	
-	
+	end
+
 	--------------------------------------
 	-- Global high-priorty usage
 	--------------------------------------
@@ -295,7 +298,7 @@ function ConsiderTempestDouble()
 	then
 		local tableNearbyEnemyCreeps = npcBot:GetNearbyCreeps( 600, true );
 		local tableNearbyEnemyTowers = npcBot:GetNearbyTowers( 600, true );
-		if ( tableNearbyEnemyCreeps ~= nil and #tableNearbyEnemyCreeps >= 3 ) or ( tableNearbyEnemyTowers  ~= nil and #tableNearbyEnemyTowers >= 1 ) 
+		if ( tableNearbyEnemyCreeps ~= nil and #tableNearbyEnemyCreeps >= 3 ) or ( tableNearbyEnemyTowers  ~= nil and #tableNearbyEnemyTowers >= 1 )
 		then
 			return BOT_ACTION_DESIRE_LOW;
 		end
@@ -307,7 +310,7 @@ function ConsiderTempestDouble()
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 800, true, BOT_MODE_NONE );
-		if ( tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes >= 2 )  
+		if ( tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes >= 2 )
 		then
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
@@ -327,8 +330,8 @@ function ConsiderTempestDouble()
 end
 function ConsiderSongStop()
 	-- Make sure it's castable
-	if ( not abilityOGS:IsFullyCastable() or abilityOGS:IsHidden() ) 
-	then 
+	if ( not abilityOGS:IsFullyCastable() or abilityOGS:IsHidden() )
+	then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -338,12 +341,12 @@ function ConsiderSongStop()
 		if mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 400)
 		then
 			local allies = npcTarget:GetNearbyHeroes(400, true, BOT_MODE_NONE)
-			if allies ~= nil and #allies >= 3 
+			if allies ~= nil and #allies >= 3
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
 	end
-	
-	return BOT_ACTION_DESIRE_NONE;	
+
+	return BOT_ACTION_DESIRE_NONE;
 end

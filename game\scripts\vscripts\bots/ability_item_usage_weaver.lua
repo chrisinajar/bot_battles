@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castDCDesire = 0;
@@ -28,7 +31,7 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if ( npcBot:IsUsingAbility() or npcBot:IsChanneling() or npcBot:IsSilenced()  ) then return end
 
@@ -40,20 +43,20 @@ function AbilityUsageThink()
 	castDCDesire, castDCLocation = ConsiderDecay();
 	castPCDesire = ConsiderPounce();
 	castSDDesire, castSDTarget = ConsiderShadowDance();
-	
-	if ( castDCDesire > 0 ) 
+
+	if ( castDCDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilityDC, castDCLocation );
 		return;
 	end
-	
-	if ( castPCDesire > 0 ) 
+
+	if ( castPCDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityPC );
 		return;
 	end
-	
-	if ( castSDDesire > 0 ) 
+
+	if ( castSDDesire > 0 )
 	then
 		if castSDTarget == "-1" then
 			npcBot:Action_UseAbility( abilitySD );
@@ -68,8 +71,8 @@ end
 function ConsiderDecay()
 
 	-- Make sure it's castable
-	if ( not abilityDC:IsFullyCastable() ) 
-	then 
+	if ( not abilityDC:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -88,14 +91,14 @@ function ConsiderDecay()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, npcEnemy:GetLocation();
 			end
 		end
 	end
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange)  )
@@ -103,18 +106,18 @@ function ConsiderDecay()
 			return BOT_ACTION_DESIRE_LOW, npcTarget:GetLocation();
 		end
 	end
-	
+
 	-- If we're pushing or defending a lane and can hit 4+ creeps, go for it
 	if mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot) and npcBot:GetMana() / npcBot:GetMaxMana() > 0.65
 	then
 		local locationAoE = npcBot:FindAoELocation( true, false, npcBot:GetLocation(), nCastRange, nRadius/2, 0, 0 );
-		if ( locationAoE.count >= 3 ) 
+		if ( locationAoE.count >= 3 )
 		then
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
 	end
 
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -134,14 +137,14 @@ end
 function ConsiderPounce()
 
 	-- Make sure it's castable
-	if ( not abilityPC:IsFullyCastable() or castSDDesire > 0 ) then 
+	if ( not abilityPC:IsFullyCastable() or castSDDesire > 0 ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 	--------------------------------------
 	-- Mode based usage
 	--------------------------------------
-	local nAttackRange = npcBot:GetAttackRange(); 
-	
+	local nAttackRange = npcBot:GetAttackRange();
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
@@ -156,7 +159,7 @@ function ConsiderPounce()
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and not mutil.IsInRange(npcTarget, npcBot, nAttackRange+200) and 
+		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and not mutil.IsInRange(npcTarget, npcBot, nAttackRange+200) and
 		   mutil.IsInRange(npcTarget, npcBot, 2000)
 		then
 			return BOT_ACTION_DESIRE_HIGH;
@@ -170,7 +173,7 @@ end
 function ConsiderShadowDance()
 
 	-- Make sure it's castable
-	if ( not abilitySD:IsFullyCastable() ) then 
+	if ( not abilitySD:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 	--------------------------------------
@@ -187,7 +190,7 @@ function ConsiderShadowDance()
 		then
 			for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 			do
-				if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) ) 
+				if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) )
 				then
 					return BOT_ACTION_DESIRE_MODERATE, "-1";
 				end
@@ -195,7 +198,7 @@ function ConsiderShadowDance()
 		end
 	end
 
-	if npcBot:HasScepter() 
+	if npcBot:HasScepter()
 	then
 		local tableNearbyFriendlyHeroes = npcBot:GetNearbyHeroes( 1000, false, BOT_MODE_NONE );
 		for _,myFriend in pairs(tableNearbyFriendlyHeroes) do
@@ -203,9 +206,9 @@ function ConsiderShadowDance()
 			then
 				return BOT_ACTION_DESIRE_MODERATE, myFriend;
 			end
-		end	
+		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 
 end

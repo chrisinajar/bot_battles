@@ -7,14 +7,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castSADesire = 0;
@@ -29,52 +32,52 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
-	if abilitySA == "" then abilitySA = npcBot:GetAbilityByName( "obsidian_destroyer_arcane_orb" ); end 
-	if abilityDR == "" then abilityDR = npcBot:GetAbilityByName( "obsidian_destroyer_astral_imprisonment" ); end 
+	if abilitySA == "" then abilitySA = npcBot:GetAbilityByName( "obsidian_destroyer_arcane_orb" ); end
+	if abilityDR == "" then abilityDR = npcBot:GetAbilityByName( "obsidian_destroyer_astral_imprisonment" ); end
 	if abilityEA == "" then abilityEA = npcBot:GetAbilityByName( "obsidian_destroyer_essence_aura" ); end
 	if abilitySS == "" then abilitySS = npcBot:GetAbilityByName( "obsidian_destroyer_sanity_eclipse" ); end
-	
+
 	if abilitySA:IsTrained() and abilityEA:GetLevel() >= 3 and not abilitySA:GetAutoCastState( )  then
 		abilitySA:ToggleAutoCast();
 	end
-	
+
 	castSADesire, castSATarget = ConsiderSearingArrows()
 	castDRDesire, castDRTarget = ConsiderDisruption();
 	castSSDesire, castSSLocation = ConsiderStaticStorm();
-	
-	if castSADesire > 0 
+
+	if castSADesire > 0
 	then
 		npcBot:Action_UseAbilityOnEntity(abilitySA, castSATarget);
 	end
-	if ( castDRDesire > 0 ) 
+	if ( castDRDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityDR, castDRTarget );
 		return;
 	end
-	if ( castSSDesire > 0 ) 
+	if ( castSSDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilitySS, castSSLocation );
 		return;
 	end
 
-	
+
 end
 
 
 function ConsiderSearingArrows()
 
-	if ( not abilitySA:IsFullyCastable() or abilitySA:GetAutoCastState( ) ) then 
+	if ( not abilitySA:IsFullyCastable() or abilitySA:GetAutoCastState( ) ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
 	local attackRange = npcBot:GetAttackRange()
 
 	-- If we're going after someone
-	if mutil.IsGoingOnSomeone(npcBot) 
+	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
 		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, attackRange+200)
@@ -82,15 +85,15 @@ function ConsiderSearingArrows()
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
-	
+
 end
 
 function ConsiderDisruption()
 
 	-- Make sure it's castable
-	if ( not abilityDR:IsFullyCastable() ) then 
+	if ( not abilityDR:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -101,45 +104,45 @@ function ConsiderDisruption()
 	-- Mode based usage
 	--------------------------------------
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
-	if mutil.IsRetreating(npcBot) 
+	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyAllyHeroes = npcBot:GetNearbyHeroes( 1000, false, BOT_MODE_ATTACK );
-		if tableNearbyAllyHeroes ~= nil and #tableNearbyAllyHeroes == 2 
+		if tableNearbyAllyHeroes ~= nil and #tableNearbyAllyHeroes == 2
 		then
 			return BOT_ACTION_DESIRE_HIGH, npcBot;
 		else
 			local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange+200, true, BOT_MODE_NONE );
 			for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 			do
-				if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+				if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 				then
 					return BOT_ACTION_DESIRE_HIGH, npcEnemy;
 				end
 			end
 		end
 	end
-	
+
 	local tableNearbyFriendlyHeroes = npcBot:GetNearbyHeroes( 1000, false, BOT_MODE_NONE );
-	for _,myFriend in pairs(tableNearbyFriendlyHeroes) 
+	for _,myFriend in pairs(tableNearbyFriendlyHeroes)
 	do
 		if  myFriend:GetUnitName() ~= npcBot:GetUnitName() and mutil.IsRetreating(myFriend) and
 			myFriend:WasRecentlyDamagedByAnyHero(2.0) and mutil.CanCastOnNonMagicImmune(myFriend)
 		then
 			return BOT_ACTION_DESIRE_MODERATE, myFriend;
 		end
-	end	
-	
+	end
+
 	-- Check for a channeling enemy
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange + 200, true, BOT_MODE_NONE );
 	for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 	do
-		if ( mutil.CanKillTarget(npcEnemy, nDamage, DAMAGE_TYPE_MAGICAL) or npcEnemy:IsChanneling() ) and mutil.CanCastOnNonMagicImmune( npcEnemy ) 
-		    and not mutil.IsDisabled(true, npcEnemy) 
+		if ( mutil.CanKillTarget(npcEnemy, nDamage, DAMAGE_TYPE_MAGICAL) or npcEnemy:IsChanneling() ) and mutil.CanCastOnNonMagicImmune( npcEnemy )
+		    and not mutil.IsDisabled(true, npcEnemy)
 		then
 			return BOT_ACTION_DESIRE_HIGH, npcEnemy;
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local npcMostDangerousEnemy = nil;
@@ -147,7 +150,7 @@ function ConsiderDisruption()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if mutil.CanCastOnNonMagicImmune( npcEnemy ) and not mutil.IsDisabled(true, npcEnemy) 
+			if mutil.CanCastOnNonMagicImmune( npcEnemy ) and not mutil.IsDisabled(true, npcEnemy)
 			then
 				local nDamage = npcEnemy:GetEstimatedDamageToTarget( false, npcBot, 3.0, DAMAGE_TYPE_ALL );
 				if ( nDamage > nMostDangerousDamage )
@@ -163,18 +166,18 @@ function ConsiderDisruption()
 			return BOT_ACTION_DESIRE_HIGH, npcMostDangerousEnemy;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
 		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200) and
-		    not mutil.IsDisabled(true, npcTarget) 
+		    not mutil.IsDisabled(true, npcTarget)
 		then
 			return BOT_ACTION_DESIRE_HIGH, npcTarget;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 
 end
@@ -182,8 +185,8 @@ end
 function ConsiderStaticStorm()
 
 	-- Make sure it's castable
-	if ( not abilitySS:IsFullyCastable() ) 
-	then 
+	if ( not abilitySS:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -191,7 +194,7 @@ function ConsiderStaticStorm()
 	local nRadius = abilitySS:GetSpecialValueInt( "radius" );
 	local nCastRange = abilitySS:GetCastRange();
 	local nCastPoint = abilitySS:GetCastPoint( );
-	local MyIntVal = npcBot:GetAttributeValue(ATTRIBUTE_INTELLECT); 
+	local MyIntVal = npcBot:GetAttributeValue(ATTRIBUTE_INTELLECT);
 	local nMultiplier = abilitySS:GetSpecialValueInt( "damage_multiplier" );
 
 	--------------------------------------
@@ -199,18 +202,18 @@ function ConsiderStaticStorm()
 	--------------------------------------
 	local tableNearbyAllyHeroes = npcBot:GetNearbyHeroes( nCastRange, false, BOT_MODE_ATTACK );
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
-	if (  mutil.IsRetreating(npcBot)  and tableNearbyAllyHeroes ~= nil and #tableNearbyAllyHeroes >= 2 ) 
+	if (  mutil.IsRetreating(npcBot)  and tableNearbyAllyHeroes ~= nil and #tableNearbyAllyHeroes >= 2 )
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, npcEnemy:GetLocation();
 			end
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange+(nRadius/2), true, BOT_MODE_NONE );
@@ -219,23 +222,23 @@ function ConsiderStaticStorm()
 			local EnemyInt = npcEnemy:GetAttributeValue(ATTRIBUTE_INTELLECT);
 			local diff = MyIntVal - EnemyInt;
 			local nDamage = nMultiplier * diff;
-			if ( diff > 0 and mutil.CanKillTarget(npcEnemy,nDamage, DAMAGE_TYPE_MAGICAL ) ) 
+			if ( diff > 0 and mutil.CanKillTarget(npcEnemy,nDamage, DAMAGE_TYPE_MAGICAL ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, npcEnemy:GetLocation();
 			end
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200)  
+		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200)
 		then
 			local EnemyInt = npcTarget:GetAttributeValue(ATTRIBUTE_INTELLECT);
 			local diff = MyIntVal - EnemyInt;
 			local nDamage = nMultiplier * diff;
-			if ( diff > 0 and mutil.CanKillTarget(npcTarget,nDamage, DAMAGE_TYPE_MAGICAL ) ) 
+			if ( diff > 0 and mutil.CanKillTarget(npcTarget,nDamage, DAMAGE_TYPE_MAGICAL ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetLocation();
 			end

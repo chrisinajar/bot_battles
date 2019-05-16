@@ -32,7 +32,7 @@ function ItemSelection:ResetHeroes ()
   end
   each(killHero, PlayerResource:GetAllTeamPlayerIDs())
   GridNav:RegrowAllTrees()
-  GameRules:SetTimeOfDay(0)
+  GameRules:SetTimeOfDay(0.5)
 end
 
 function ItemSelection:Reset (playerID, keys)

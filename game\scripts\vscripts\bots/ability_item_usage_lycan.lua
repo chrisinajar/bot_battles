@@ -8,14 +8,17 @@ local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castDPDesire = 0;
@@ -31,7 +34,7 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -43,20 +46,20 @@ function AbilityUsageThink()
 	castDPDesire = ConsiderDarkPact();
 	castPCDesire = ConsiderPounce();
 	castSDDesire = ConsiderShadowDance();
-	
-	if ( castDPDesire > 0 ) 
+
+	if ( castDPDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityDP );
 		return;
 	end
-	
-	if ( castPCDesire > 0 ) 
+
+	if ( castPCDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityPC );
 		return;
 	end
-	
-	if ( castSDDesire > 0 ) 
+
+	if ( castSDDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilitySD );
 		return;
@@ -67,7 +70,7 @@ end
 function ConsiderDarkPact()
 
 	-- Make sure it's castable
-	if ( not abilityDP:IsFullyCastable() ) then 
+	if ( not abilityDP:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 	local wolves = 0;
@@ -83,23 +86,23 @@ function ConsiderDarkPact()
 	--------------------------------------
 
 	-- If we're farming and can kill 3+ creeps with LSA
-	if mutil.IsPushing(npcBot) 
+	if mutil.IsPushing(npcBot)
 	then
 		local locationAoE = npcBot:FindAoELocation( true, false, npcBot:GetLocation(), 600, 300, 0, 0 );
 		if ( locationAoE.count >= 3 and npcBot:GetMana()/npcBot:GetMaxMana() > 0.65 and wolves < 1 ) then
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
-	if npcBot:GetActiveMode() == BOT_MODE_FARM 
+
+	if npcBot:GetActiveMode() == BOT_MODE_FARM
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if npcTarget ~= nil then
 			return BOT_ACTION_DESIRE_LOW;
 		end
-	end	
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+	end
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 300)  )
@@ -107,12 +110,12 @@ function ConsiderDarkPact()
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 800) and wolves < 1 ) 
+		if ( mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 800) and wolves < 1 )
 		then
 			return BOT_ACTION_DESIRE_HIGH;
 		end
@@ -126,7 +129,7 @@ end
 function ConsiderPounce()
 
 	-- Make sure it's castable
-	if ( not abilityPC:IsFullyCastable() ) then 
+	if ( not abilityPC:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -134,23 +137,23 @@ function ConsiderPounce()
 	-- Mode based usage
 	--------------------------------------
 	-- If we're farming and can kill 3+ creeps with LSA
-	if mutil.IsPushing(npcBot) 
+	if mutil.IsPushing(npcBot)
 	then
 		local locationAoE = npcBot:FindAoELocation( true, false, npcBot:GetLocation(), 600, 300, 0, 0 );
 		if ( locationAoE.count >= 3 and npcBot:GetMana()/npcBot:GetMaxMana() > 0.5 ) then
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
-	if npcBot:GetActiveMode() == BOT_MODE_FARM 
+
+	if npcBot:GetActiveMode() == BOT_MODE_FARM
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if npcTarget ~= nil then
 			return BOT_ACTION_DESIRE_LOW;
 		end
-	end	
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+	end
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 300)  )
@@ -158,7 +161,7 @@ function ConsiderPounce()
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -176,7 +179,7 @@ end
 function ConsiderShadowDance()
 
 	-- Make sure it's castable
-	if ( not abilitySD:IsFullyCastable() ) then 
+	if ( not abilitySD:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -189,7 +192,7 @@ function ConsiderShadowDance()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 		if tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes >= 1 then
 			return BOT_ACTION_DESIRE_MODERATE;
-		end	
+		end
 	end
 
 	-- If we're going after someone

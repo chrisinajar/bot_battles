@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castASDesire = 0;
@@ -29,7 +32,7 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -41,31 +44,31 @@ function AbilityUsageThink()
 	castSCDesire = ConsiderSlithereenCrush();
 	castASDesire, castASLocation = ConsiderAncestralSpirit();
 	castSPDesire, castSPLocation = ConsiderShadowPoison();
-	
-	if ( castSPDesire > 0 ) 
+
+	if ( castSPDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilitySP, castSPLocation );
 		return;
 	end
-	
-	if ( castASDesire > 0 ) 
+
+	if ( castASDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilityAS, castASLocation );
 		return;
 	end
-	
-	if ( castSCDesire > 0 ) 
+
+	if ( castSCDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilitySC );
 		return;
 	end
-	
+
 end
 
 function ConsiderSlithereenCrush()
 
 	-- Make sure it's castable
-	if ( not abilitySC:IsFullyCastable() ) then 
+	if ( not abilitySC:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -81,20 +84,20 @@ function ConsiderSlithereenCrush()
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 	for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 	do
-		if ( npcEnemy:IsChanneling() ) 
+		if ( npcEnemy:IsChanneling() )
 		then
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
-	
+
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy)  ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy)  )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
@@ -108,7 +111,7 @@ function ConsiderSlithereenCrush()
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -127,8 +130,8 @@ end
 function ConsiderAncestralSpirit()
 
 	-- Make sure it's castable
-	if ( not abilityAS:IsFullyCastable() ) 
-	then 
+	if ( not abilityAS:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -148,13 +151,13 @@ function ConsiderAncestralSpirit()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, npcEnemy:GetLocation();
 			end
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local locationAoE = npcBot:FindAoELocation( true, true, npcBot:GetLocation(), nCastRange, nRadius, 0, 0 );
@@ -162,23 +165,23 @@ function ConsiderAncestralSpirit()
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
 	end
-	
+
 	-- If we're pushing or defending a lane and can hit 4+ creeps, go for it
 	if ( mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot) ) and npcBot:GetMana() / npcBot:GetMaxMana() > 0.6
 	then
 		local lanecreeps = npcBot:GetNearbyLaneCreeps(nCastRange+200, true);
 		local locationHAoE = npcBot:FindAoELocation( true, true, npcBot:GetLocation(), nCastRange, nRadius, 0, 0 );
-		if ( locationHAoE.count >= 2  ) 
+		if ( locationHAoE.count >= 2  )
 		then
 			return BOT_ACTION_DESIRE_LOW, locationHAoE.targetloc;
 		end
 		local locationCAoE = npcBot:FindAoELocation( true, false, npcBot:GetLocation(), nCastRange, nRadius, 0, 0 );
-		if ( locationCAoE.count >= 3 and #lanecreeps >= 3  ) 
+		if ( locationCAoE.count >= 3 and #lanecreeps >= 3  )
 		then
 			return BOT_ACTION_DESIRE_LOW, locationCAoE.targetloc;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -195,10 +198,10 @@ end
 
 function ConsiderShadowPoison()
 
-	
+
 	-- Make sure it's castable
-	if ( not abilitySP:IsFullyCastable() ) 
-	then 
+	if ( not abilitySP:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -211,20 +214,20 @@ function ConsiderShadowPoison()
 
 	--------------------------------------
 	-- Mode based usage
-	--------------------------------------	
+	--------------------------------------
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, npcEnemy:GetExtrapolatedLocation( nCastPoint + nCrackTime - 1.5 );
 			end
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local locationAoE = npcBot:FindAoELocation( true, true, npcBot:GetLocation(), 1000, nRadius, 0, 0 );
@@ -235,7 +238,7 @@ function ConsiderShadowPoison()
 			end
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then

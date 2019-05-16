@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castISDesire = 0;
@@ -30,7 +33,7 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -45,31 +48,31 @@ function AbilityUsageThink()
 	castISDesire, castISTarget = ConsiderIonShell();
 	castSGDesire, castSGTarget = ConsiderSurge();
 	castWRDesire, castWRLocation = ConsiderWallOfReplica();
-	
-	if ( castWRDesire > 0 ) 
+
+	if ( castWRDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilityWR, castWRLocation );
 		return;
 	end
-	
-	if ( castVCDesire > 0 ) 
+
+	if ( castVCDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilityVC, castVCLocation );
 		return;
 	end
-	
-	if ( castISDesire > 0 ) 
+
+	if ( castISDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityIS, castISTarget );
 		return;
 	end
-	
-	if ( castSGDesire > 0 ) 
+
+	if ( castSGDesire > 0 )
 	then
 		if AOESurge:IsTrained() then
 			npcBot:Action_UseAbilityOnLocation( abilitySG, castSGTarget:GetLocation() );
 			return;
-		else	
+		else
 			npcBot:Action_UseAbilityOnEntity( abilitySG, castSGTarget );
 			return;
 		end
@@ -80,11 +83,11 @@ end
 function ConsiderVacuum()
 
 	-- Make sure it's castable
-	if ( not abilityVC:IsFullyCastable() or abilityVC:GetLevel() < 2 ) 
-	then 
+	if ( not abilityVC:IsFullyCastable() or abilityVC:GetLevel() < 2 )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	if castWRDesire > 0 then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
@@ -104,13 +107,13 @@ function ConsiderVacuum()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, npcEnemy:GetLocation();
 			end
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local locationAoE = npcBot:FindAoELocation( true, true, npcBot:GetLocation(), nCastRange, nRadius/2, 0, 0 );
@@ -119,7 +122,7 @@ function ConsiderVacuum()
 			return BOT_ACTION_DESIRE_MODERATE, locationAoE.targetloc
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -129,23 +132,23 @@ function ConsiderVacuum()
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetLocation();
 		end
 	end
-	
+
 	local skThere, skLoc = mutil.IsSandKingThere(npcBot, nCastRange+200, 2.0);
-	
+
 	if skThere then
 		return BOT_ACTION_DESIRE_MODERATE, skLoc;
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 end
 
 function ConsiderIonShell()
 
 	-- Make sure it's castable
-	if ( not abilityIS:IsFullyCastable() ) then 
+	if ( not abilityIS:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	local nCastRange = abilityIS:GetCastRange();
 
 	-- If we're pushing or defending a lane
@@ -156,18 +159,18 @@ function ConsiderIonShell()
 				for _,myFriend in pairs(tableNearbyFriendlyHeroes) do
 					if ( not myFriend:HasModifier("modifier_dark_seer_ion_shell") and
 						 myFriend:GetAttackRange() < 320
-						) 
+						)
 					then
 						return BOT_ACTION_DESIRE_MODERATE, myFriend;
 					end
-				end	
+				end
 				if not npcBot:HasModifier("modifier_dark_seer_ion_shell") then
 					return BOT_ACTION_DESIRE_MODERATE, npcBot;
 				end
 			end
 	end
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange)  )
@@ -175,25 +178,25 @@ function ConsiderIonShell()
 			return BOT_ACTION_DESIRE_LOW, npcBot;
 		end
 	end
-	
+
 	-- If we're pushing or defending a lane
-	if mutil.IsPushing(npcBot) 
+	if mutil.IsPushing(npcBot)
 	then
 		if npcBot:GetMana() / npcBot:GetMaxMana() >= 0.65 then
 			local tableNearbyFriendlyHeroes = npcBot:GetNearbyHeroes( nCastRange, false, BOT_MODE_NONE );
 			for _,myFriend in pairs(tableNearbyFriendlyHeroes) do
 				if ( not myFriend:HasModifier("modifier_dark_seer_ion_shell") and
 					 myFriend:GetAttackRange() < 320
-					) 
+					)
 				then
 					return BOT_ACTION_DESIRE_MODERATE, myFriend;
 				end
-			end	
+			end
 			local tableNearbyFriendlyCreeps = npcBot:GetNearbyLaneCreeps( nCastRange, false );
 			for _,myCreeps in pairs(tableNearbyFriendlyCreeps) do
-				if  myCreeps:GetHealth() / myCreeps:GetMaxHealth() >= 0.85 and 
-					myCreeps:GetAttackRange() < 320 and 
-					not myCreeps:HasModifier("modifier_dark_seer_ion_shell") 
+				if  myCreeps:GetHealth() / myCreeps:GetMaxHealth() >= 0.85 and
+					myCreeps:GetAttackRange() < 320 and
+					not myCreeps:HasModifier("modifier_dark_seer_ion_shell")
 				then
 					return BOT_ACTION_DESIRE_MODERATE, myCreeps;
 				end
@@ -203,7 +206,7 @@ function ConsiderIonShell()
 			end
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -212,28 +215,28 @@ function ConsiderIonShell()
 		then
 			local tableNearbyFriendlyHeroes = npcBot:GetNearbyHeroes( nCastRange, false, BOT_MODE_NONE );
 			for _,myFriend in pairs(tableNearbyFriendlyHeroes) do
-				if ( not myFriend:HasModifier("modifier_dark_seer_ion_shell")   and 
+				if ( not myFriend:HasModifier("modifier_dark_seer_ion_shell")   and
 					 myFriend:GetAttackRange() < 320 )
 				then
 					return BOT_ACTION_DESIRE_MODERATE, myFriend;
 				end
-			end	
+			end
 			if not npcBot:HasModifier("modifier_dark_seer_ion_shell") then
 				return BOT_ACTION_DESIRE_MODERATE, npcBot;
 			end
-		end	
+		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 end
 
 function ConsiderSurge()
 
 	-- Make sure it's castable
-	if ( not abilitySG:IsFullyCastable() ) then 
+	if ( not abilitySG:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	local nCastRange = abilitySG:GetCastRange();
 
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
@@ -242,21 +245,21 @@ function ConsiderSurge()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 1.0 ) )
 			then
 				return BOT_ACTION_DESIRE_HIGH, npcBot;
 			end
 		end
 	end
-	
+
 	local tableNearbyFriendlyHeroes = npcBot:GetNearbyHeroes( 1000, false, BOT_MODE_NONE );
 	for _,myFriend in pairs(tableNearbyFriendlyHeroes) do
 		if mutil.IsRetreating(myFriend) and myFriend:WasRecentlyDamagedByAnyHero(2.0)
 		then
 			return BOT_ACTION_DESIRE_MODERATE, myFriend;
 		end
-	end	
-	
+	end
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -264,29 +267,29 @@ function ConsiderSurge()
 		if mutil.IsValidTarget(npcTarget) and mutil.IsInRange(npcTarget, npcBot, 1000)
 		then
 			local ClosestDist = GetUnitToUnitDistance(npcTarget, npcBot);
-			local ClosestBot = npcBot; 
+			local ClosestBot = npcBot;
 			for _,myFriend in pairs(tableNearbyFriendlyHeroes) do
 				local dist = GetUnitToUnitDistance(npcTarget, myFriend);
 				if dist < ClosestDist and dist < nCastRange then
 					ClosestDist = dist;
 					ClosestBot = myFriend;
 				end
-			end	
+			end
 			return BOT_ACTION_DESIRE_MODERATE, ClosestBot;
-		end	
+		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 end
 
 function ConsiderWallOfReplica()
 
 	-- Make sure it's castable
-	if ( not abilityWR:IsFullyCastable() ) 
-	then 
+	if ( not abilityWR:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 
 	-- Get some of its values
 	local nRadius = abilityVC:GetSpecialValueInt( "radius" );
@@ -308,6 +311,6 @@ function ConsiderWallOfReplica()
 			end
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 end

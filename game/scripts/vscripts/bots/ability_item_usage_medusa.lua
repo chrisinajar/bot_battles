@@ -7,14 +7,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castHMDesire = 0;
@@ -30,7 +33,7 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -43,24 +46,24 @@ function AbilityUsageThink()
 	castHMDesire, castHMTarget = ConsiderHomingMissile();
 	castFCDesire  = ConsiderFlakCannon();
 
-	
+
 	--[[if abilitySS:IsTrained() and not abilitySS:GetToggleState() then
 		npcBot:Action_UseAbility ( abilitySS );
 		return;
 	end]]--
-	
+
 	if abilityMS:IsTrained() and not abilityMS:GetToggleState() then
 		npcBot:Action_UseAbility ( abilityMS );
 		return;
 	end
-	
-	if ( castFCDesire > 0 ) 
+
+	if ( castFCDesire > 0 )
 	then
 		npcBot:Action_UseAbility ( abilityFC );
 		return;
 	end
-	
-	if ( castHMDesire > 0 ) 
+
+	if ( castHMDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityHM, castHMTarget );
 		return;
@@ -75,7 +78,7 @@ end
 function ConsiderHomingMissile()
 
 	-- Make sure it's castable
-	if ( not abilityHM:IsFullyCastable() ) then 
+	if ( not abilityHM:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -84,23 +87,23 @@ function ConsiderHomingMissile()
 	local nDamage = 2*abilityHM:GetSpecialValueInt('snake_damage');
 	--------------------------------------
 	-- Mode based usage
-	--------------------------------------	
+	--------------------------------------
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE, npcEnemy;
 			end
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
-		
+
 		local npcMostDangerousEnemy = nil;
 		local nMostDangerousDamage = 100000;
 
@@ -122,9 +125,9 @@ function ConsiderHomingMissile()
 		then
 			return BOT_ACTION_DESIRE_HIGH, npcMostDangerousEnemy;
 		end
-		
+
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -134,7 +137,7 @@ function ConsiderHomingMissile()
 			return BOT_ACTION_DESIRE_HIGH, npcTarget;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 
 end
@@ -143,7 +146,7 @@ end
 function ConsiderFlakCannon()
 
 	-- Make sure it's castable
-	if ( not abilityFC:IsFullyCastable() ) then 
+	if ( not abilityFC:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -158,26 +161,26 @@ function ConsiderFlakCannon()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local locationAoE = npcBot:FindAoELocation( true, true, npcBot:GetLocation(), nAttackRange, 400, 0, 0 );
-		if ( locationAoE.count >= 2 ) 
+		if ( locationAoE.count >= 2 )
 		then
 			local nInvUnit = mutil.FindNumInvUnitInLoc(true, npcBot, nAttackRange+200, 400, locationAoE.targetloc);
 			if nInvUnit >= locationAoE.count then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
-		
+
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
 
 end

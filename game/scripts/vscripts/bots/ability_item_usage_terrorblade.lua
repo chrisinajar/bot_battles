@@ -7,8 +7,8 @@ local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
@@ -16,6 +16,10 @@ end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
 end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
+end
+
 local npcBot = GetBot();
 local castDCDesire = 0;
 local castFGDesire = 0;
@@ -45,27 +49,27 @@ function AbilityUsageThink()
 	castFGDesire = ConsiderFleshGolem();
 	castFBDesire, castFBTarget = ConsiderFireblast();
 
-	if ( castFBDesire > 0 ) 
+	if ( castFBDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityFB, castFBTarget );
 		return;
 	end
-	if ( castFGDesire > 0 ) 
+	if ( castFGDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityFG );
 		return;
 	end
-	if ( castDPDesire > 0 ) 
+	if ( castDPDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityDP );
 		return;
 	end
-	if ( castDCDesire > 0 ) 
+	if ( castDCDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityDC );
 		return;
 	end
-	
+
 
 end
 
@@ -84,8 +88,8 @@ end
 function ConsiderDecay()
 
 	-- Make sure it's castable
-	if ( not abilityDC:IsFullyCastable() ) 
-	then 
+	if ( not abilityDC:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -97,20 +101,20 @@ function ConsiderDecay()
 	--------------------------------------
 	-- Mode based usage
 	--------------------------------------
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
@@ -118,12 +122,12 @@ function ConsiderDecay()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange( npcTarget, npcBot, nRadius - 200) ) 
+		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange( npcTarget, npcBot, nRadius - 200) )
 		then
 				return BOT_ACTION_DESIRE_MODERATE;
 		end
@@ -136,7 +140,7 @@ end
 function ConsiderDarkPact()
 
 	-- Make sure it's castable
-	if ( not abilityDP:IsFullyCastable() ) then 
+	if ( not abilityDP:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -154,7 +158,7 @@ function ConsiderDarkPact()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 )  ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 )  )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
@@ -170,7 +174,7 @@ function ConsiderDarkPact()
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -188,12 +192,12 @@ end
 function ConsiderFleshGolem()
 
 	-- Make sure it's castable
-	if ( not abilityFG:IsFullyCastable() ) then 
+	if ( not abilityFG:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local nRadius = npcBot:GetAttackRange() + abilityFG:GetSpecialValueInt( "bonus_range" );
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE  );
@@ -202,7 +206,7 @@ function ConsiderFleshGolem()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -212,22 +216,22 @@ function ConsiderFleshGolem()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
 end
 
 function ConsiderFireblast()
 
 	-- Make sure it's castable
-	if ( not abilityFB:IsFullyCastable() ) then 
+	if ( not abilityFB:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
 	-- Get some of its values
 	local nCastRange = abilityFB:GetCastRange();
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
-	if mutil.IsRetreating(npcBot) and npcBot:GetHealth()/npcBot:GetMaxHealth() < 0.35 
+	if mutil.IsRetreating(npcBot) and npcBot:GetHealth()/npcBot:GetMaxHealth() < 0.35
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange+200, true, BOT_MODE_NONE );
 		local sunderTarget = mutil.GetMostHPPercent(tableNearbyEnemyHeroes, true);
@@ -235,12 +239,12 @@ function ConsiderFireblast()
 			return BOT_ACTION_DESIRE_HIGH, sunderTarget;
 		end
 	end
-	
+
 	--------------------------------------
 	-- Mode based usage
 	--------------------------------------
 	-- If we're in a teamfight, use it on the scariest enemy
-	if mutil.IsInTeamFight(npcBot, 1200) and npcBot:GetHealth()/npcBot:GetMaxHealth() < 0.35 
+	if mutil.IsInTeamFight(npcBot, 1200) and npcBot:GetHealth()/npcBot:GetMaxHealth() < 0.35
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange + 200, true, BOT_MODE_NONE );
 		local sunderTarget = mutil.GetMostHPPercent(tableNearbyEnemyHeroes, true);
@@ -249,7 +253,7 @@ function ConsiderFireblast()
 			return BOT_ACTION_DESIRE_HIGH, npcMostHealthyEnemy;
 		end
 	end
-	
+
 
 	return BOT_ACTION_DESIRE_NONE, 0;
 

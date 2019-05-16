@@ -8,14 +8,17 @@ local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castGSDesire = 0;
@@ -43,21 +46,21 @@ function AbilityUsageThink()
 	castGSDesire = ConsiderGuardianSprint();
 	castSCDesire = ConsiderSlithereenCrush();
 	castCHDesire, castCHTarget = ConsiderCorrosiveHaze();
-	
 
-	if ( castCHDesire > 0 ) 
+
+	if ( castCHDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityCH, castCHTarget );
 		return;
 	end
 
-	if ( castSCDesire > 0 ) 
+	if ( castSCDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilitySC );
 		return;
 	end
-	
-	if ( castGSDesire > 0 ) 
+
+	if ( castGSDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityGS );
 		return;
@@ -68,39 +71,39 @@ end
 function ConsiderGuardianSprint()
 
 	-- Make sure it's castable
-	if ( not abilityGS:IsFullyCastable() ) then 
+	if ( not abilityGS:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local nRadius = abilityGS:GetSpecialValueInt( "slow_aoe" );
-	
+
 	local SadStack = 0;
 	local npcModifier = npcBot:NumModifiers();
-	
-	for i = 0, npcModifier 
+
+	for i = 0, npcModifier
 	do
 		if npcBot:GetModifierName(i) == "modifier_necrolyte_death_pulse_counter" then
 			SadStack = npcBot:GetModifierStackCount(i);
 			break;
 		end
 	end
-	
+
 	if SadStack >= 8 and npcBot:GetHealth() / npcBot:GetMaxHealth() < 0.5 then
 		return BOT_ACTION_DESIRE_LOW;
 	end
-	
-	
+
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
-		if npcBot:WasRecentlyDamagedByAnyHero( 2.0 ) and #tableNearbyEnemyHeroes > 0  
+		if npcBot:WasRecentlyDamagedByAnyHero( 2.0 ) and #tableNearbyEnemyHeroes > 0
 		then
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
 
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -108,12 +111,12 @@ function ConsiderGuardianSprint()
 		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nRadius - 100)
 		then
 			local targetAllies = npcTarget:GetNearbyHeroes(1000, false, BOT_MODE_NONE);
-			if #targetAllies == 1 then 
+			if #targetAllies == 1 then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
 end
 
@@ -121,7 +124,7 @@ end
 function ConsiderSlithereenCrush()
 
 	-- Make sure it's castable
-	if ( not abilitySC:IsFullyCastable() ) then 
+	if ( not abilitySC:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
@@ -139,12 +142,12 @@ function ConsiderSlithereenCrush()
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 2*nRadius, true, BOT_MODE_NONE );
-		if npcBot:WasRecentlyDamagedByAnyHero( 2.0 ) and #tableNearbyEnemyHeroes > 0  
+		if npcBot:WasRecentlyDamagedByAnyHero( 2.0 ) and #tableNearbyEnemyHeroes > 0
 		then
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	if mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot)
 	then
 		local tableNearbyEnemyCreeps = npcBot:GetNearbyLaneCreeps( nRadius, true );
@@ -165,13 +168,13 @@ function ConsiderSlithereenCrush()
 				lowHPAllies = lowHPAllies + 1;
 			end
 		end
-		
+
 		if #tableNearbyEnemyHeroes >= 2 or lowHPAllies >= 1 then
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
-	
+
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -191,7 +194,7 @@ end
 function ConsiderCorrosiveHaze()
 
 	-- Make sure it's castable
-	if ( not abilityCH:IsFullyCastable() ) then 
+	if ( not abilityCH:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -212,7 +215,7 @@ function ConsiderCorrosiveHaze()
 			end
 		end
 	end
-	
+
 
 	-- If we're in a teamfight, use it on the scariest enemy
 	if mutil.IsInTeamFight(npcBot, 1200)
@@ -232,7 +235,7 @@ function ConsiderCorrosiveHaze()
 			return BOT_ACTION_DESIRE_HIGH, npcToKill;
 		end
 	end
-	
+
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1200, true, BOT_MODE_NONE );
 	for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 	do

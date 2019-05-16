@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castCDDesire = 0;
@@ -33,7 +36,7 @@ function AbilityUsageThink()
 		npcBot:Action_ClearActions(false);
 		return
 	end
-	
+
 	if ( npcBot:HasModifier("modifier_spirit_breaker_charge_of_darkness") or mutil.CanNotUseAbility(npcBot) or npcBot:NumQueuedActions() > 0 ) then return end;
 
 	if abilityCD == nil then abilityCD = npcBot:GetAbilityByName( "spirit_breaker_charge_of_darkness" ) end
@@ -43,23 +46,23 @@ function AbilityUsageThink()
 	castEHDesire = ConsiderEmpoweringHaste();
 	castCDDesire, castCDTarget = ConsiderCharge();
 	castNSDesire, castNSTarget = ConsiderNetherStrike();
-	
-	if abilityCD:GetCooldownTimeRemaining() > 0 and npcBot.chargeTarget ~= nil 
+
+	if abilityCD:GetCooldownTimeRemaining() > 0 and npcBot.chargeTarget ~= nil
 	then npcBot.chargeTarget = nil end
-	
-	if ( castNSDesire > 0 ) 
+
+	if ( castNSDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityNS, castNSTarget );
 		return;
 	end
 
-	if ( castEHDesire > 0 ) 
+	if ( castEHDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityEH );
 		return;
 	end
-	
-	if ( castCDDesire > 0 ) 
+
+	if ( castCDDesire > 0 )
 	then
 		npcBot:Action_ClearActions(true);
 		npcBot.chargeTarget = castCDTarget;
@@ -67,19 +70,19 @@ function AbilityUsageThink()
 		npcBot:ActionQueue_Delay( 1.0 );
 		return;
 	end
-	
+
 end
 
 
 function ConsiderEmpoweringHaste()
 
 	-- Make sure it's castable
-	if ( not abilityEH:IsFullyCastable() ) then 
+	if ( not abilityEH:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local AttackRange = npcBot:GetAttackRange();
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
@@ -89,7 +92,7 @@ function ConsiderEmpoweringHaste()
 			return BOT_ACTION_DESIRE_HIGH;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -107,36 +110,36 @@ end
 function ConsiderCharge()
 
 	-- Make sure it's castable
-	if ( not abilityCD:IsFullyCastable() or npcBot:IsRooted() ) then 
+	if ( not abilityCD:IsFullyCastable() or npcBot:IsRooted() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	-- Get some of its values
 	local nCastRange = npcBot:GetAttackRange() + 150;
-	
+
 	if mutil.IsRetreating(npcBot) and npcBot:WasRecentlyDamagedByAnyHero(2.0)
 	then
 		local enemyCreeps = GetUnitList(UNIT_LIST_ENEMY_CREEPS );
-		for _,creep in pairs(enemyCreeps) 
+		for _,creep in pairs(enemyCreeps)
 		do
 			if GetUnitToUnitDistance(creep, npcBot) > 2500 and mutil.CanCastOnNonMagicImmune(creep) then
 				return BOT_ACTION_DESIRE_MODERATE, creep;
 			end
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
 		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and
-			not mutil.IsDisabled(true, npcTarget) ) 
+			not mutil.IsDisabled(true, npcTarget) )
 		then
 			local Ally = npcTarget:GetNearbyHeroes(1600, true, BOT_MODE_NONE);
 			local Enemy = npcTarget:GetNearbyHeroes(1600, false, BOT_MODE_NONE);
 			if ( #Ally + 1 >= #Enemy  ) or npcTarget:GetHealth() <= ( 100 + (5*npcBot:GetLevel()) ) then
 				return BOT_ACTION_DESIRE_MODERATE, npcTarget;
-			end	
+			end
 		end
 	end
 
@@ -146,14 +149,14 @@ end
 function ConsiderNetherStrike()
 
 	-- Make sure it's castable
-	if ( not abilityNS:IsFullyCastable() ) then 
+	if ( not abilityNS:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	-- Get some of its values
 	local nCastRange = abilityNS:GetCastRange();
 	local nDamage = abilityNS:GetAbilityDamage();
-	
+
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange+200, true, BOT_MODE_NONE );
 	for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 	do
@@ -162,13 +165,13 @@ function ConsiderNetherStrike()
 			return BOT_ACTION_DESIRE_MODERATE, npcEnemy;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
 		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200) and
-			not mutil.IsDisabled(true, npcTarget) ) 
+			not mutil.IsDisabled(true, npcTarget) )
 		then
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget;
 		end

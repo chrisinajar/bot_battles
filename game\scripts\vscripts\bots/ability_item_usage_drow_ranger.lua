@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local npcBot = GetBot();
@@ -26,9 +29,9 @@ local castWDesire = 0;
 local castEDesire = 0;
 
 function AbilityUsageThink()
-	
+
 	if mutil.CanNotUseAbility(npcBot) then return end
-	
+
 	if abilityQ == nil then abilityQ = npcBot:GetAbilityByName( "drow_ranger_frost_arrows" ) end
 	if abilityW == nil then abilityW = npcBot:GetAbilityByName( "drow_ranger_wave_of_silence" ) end
 	if abilityE == nil then abilityE = npcBot:GetAbilityByName( "drow_ranger_trueshot" ) end
@@ -36,30 +39,30 @@ function AbilityUsageThink()
 	ConsiderQ();
 	castWDesire, castWLoc    = ConsiderW();
 	castEDesire              = ConsiderE();
-	
-	if ( castEDesire > 0 ) 
+
+	if ( castEDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityE );
 		return;
 	end
-	
-	if ( castWDesire > 0 ) 
+
+	if ( castWDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilityW, castWLoc );
 		return;
 	end
-	
+
 end
 
 function ConsiderQ()
-	
+
 	local npcTarget = npcBot:GetTarget();
 	if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget)
 	then
 		if not abilityQ:GetAutoCastState( ) then
 			abilityQ:ToggleAutoCast()
 		end
-	else 
+	else
 		if  abilityQ:GetAutoCastState( ) then
 			abilityQ:ToggleAutoCast()
 		end
@@ -70,7 +73,7 @@ end
 function ConsiderW()
 
 	-- Make sure it's castable
-	if ( not abilityW:IsFullyCastable() ) then 
+	if ( not abilityW:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -82,7 +85,7 @@ function ConsiderW()
 	local nAttackRange = npcBot:GetAttackRange( );
 
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
-	
+
 	--if we can kill any enemies
 	for _,npcEnemy in pairs(tableNearbyEnemyHeroes)
 	do
@@ -90,24 +93,24 @@ function ConsiderW()
 			return BOT_ACTION_DESIRE_HIGH, npcEnemy:GetLocation();
 		end
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 			then
 				return BOT_ACTION_DESIRE_HIGH, npcEnemy:GetLocation();
 			end
 		end
 	end
 
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local locationAoE = npcBot:FindAoELocation( true, true, npcBot:GetLocation(), nCastRange, nRadius, 0, 0 );
-		if ( locationAoE.count >= 2 ) 
+		if ( locationAoE.count >= 2 )
 		then
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
@@ -117,18 +120,18 @@ function ConsiderW()
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nAttackRange) 
+		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nAttackRange)
 		then
 			return BOT_ACTION_DESIRE_HIGH, npcTarget:GetLocation();
 		end
 	end
-	
+
 	local skThere, skLoc = mutil.IsSandKingThere(npcBot, nCastRange, 2.0);
-	
+
 	if skThere then
 		return BOT_ACTION_DESIRE_MODERATE, skLoc;
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 
 end
@@ -136,10 +139,10 @@ end
 function ConsiderE()
 
 	-- Make sure it's castable
-	if ( not abilityE:IsFullyCastable() ) then 
+	if ( not abilityE:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	-- If We're pushing or defending
 	if mutil.IsPushing(npcBot)
 	then

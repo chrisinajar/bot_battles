@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castTWDesire = 0;
@@ -41,19 +44,19 @@ function AbilityUsageThink()
 	castCSDesire, castCSLocation = ConsiderChrono();
 	castTDDesire = ConsiderTimeDilation();
 
-	if ( castTWDesire > 0 ) 
+	if ( castTWDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilityTW, castTWLocation );
 		return;
-	end	
-	
-	if ( castCSDesire > 0 ) 
+	end
+
+	if ( castCSDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilityCS, castCSLocation );
 		return;
-	end	
-	
-	if ( castTDDesire > 0 ) 
+	end
+
+	if ( castTDDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityTD );
 		return;
@@ -64,16 +67,16 @@ end
 function ConsiderTimeWalk()
 
 	-- Make sure it's castable
-	if ( not abilityTW:IsFullyCastable() or npcBot:IsRooted() ) 
-	then 
+	if ( not abilityTW:IsFullyCastable() or npcBot:IsRooted() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
-	if ( npcBot:HasModifier("modifier_faceless_void_chronosphere_speed") ) 
-	then 
+
+	if ( npcBot:HasModifier("modifier_faceless_void_chronosphere_speed") )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	-- Get some of its values
 	local nCastRange = abilityTW:GetSpecialValueInt("range");
 	local nCastPoint = abilityTW:GetCastPoint( );
@@ -83,7 +86,7 @@ function ConsiderTimeWalk()
 		local loc = mutil.GetEscapeLoc();
 		return BOT_ACTION_DESIRE_HIGH, npcBot:GetXUnitsTowardsLocation( loc, nCastRange );
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
@@ -92,13 +95,13 @@ function ConsiderTimeWalk()
 		then
 			local loc = mutil.GetEscapeLoc();
 		    return BOT_ACTION_DESIRE_HIGH, npcBot:GetXUnitsTowardsLocation( loc, nCastRange );
-		end	
+		end
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and not mutil.IsInRange(npcTarget, npcBot, 200) and mutil.IsInRange(npcTarget, npcBot, nCastRange) 
+		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and not mutil.IsInRange(npcTarget, npcBot, 200) and mutil.IsInRange(npcTarget, npcBot, nCastRange)
 		then
 			local tableNearbyEnemies = npcTarget:GetNearbyHeroes( 1000, false, BOT_MODE_NONE );
 			local tableNearbyAllies = npcTarget:GetNearbyHeroes( 1200, true, BOT_MODE_NONE );
@@ -107,7 +110,7 @@ function ConsiderTimeWalk()
 			end
 		end
 	end
-	
+
 --
 	return BOT_ACTION_DESIRE_NONE, 0;
 end
@@ -115,16 +118,16 @@ end
 function ConsiderTimeDilation()
 
 	-- Make sure it's castable
-	if ( not abilityTD:IsFullyCastable() ) 
-	then 
-		return BOT_ACTION_DESIRE_NONE;
-	end
-
-	if ( castTWDesire > 0 ) 
+	if ( not abilityTD:IsFullyCastable() )
 	then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
+	if ( castTWDesire > 0 )
+	then
+		return BOT_ACTION_DESIRE_NONE;
+	end
+
 	-- Get some of its values
 	local nRadius = abilityTD:GetSpecialValueInt("radius");
 
@@ -134,13 +137,13 @@ function ConsiderTimeDilation()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius - 200, true, BOT_MODE_NONE );
@@ -148,7 +151,7 @@ function ConsiderTimeDilation()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
@@ -158,7 +161,7 @@ function ConsiderTimeDilation()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 --
 	return BOT_ACTION_DESIRE_NONE;
 end
@@ -166,8 +169,8 @@ end
 function ConsiderChrono()
 
 	-- Make sure it's castable
-	if ( not abilityCS:IsFullyCastable() ) 
-	then 
+	if ( not abilityCS:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -183,17 +186,17 @@ function ConsiderChrono()
 		if tableNearbyAllyHeroes ~= nil and  #tableNearbyAllyHeroes >= 2 then
 			for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 			do
-				if npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) 
+				if npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 )
 				then
 					local allies = mutil.GetAlliesNearLoc(npcEnemy:GetLocation(), nRadius);
 					if #allies <= 2 then
 						return BOT_ACTION_DESIRE_LOW, npcEnemy:GetLocation();
-					end	
+					end
 				end
 			end
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local locationAoE = npcBot:FindAoELocation( true, true, npcBot:GetLocation(), nCastRange, nRadius/2, 0, 0 );
@@ -207,11 +210,11 @@ function ConsiderChrono()
 			end
 		end
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+(nRadius/2)) )   
+		if ( mutil.IsValidTarget(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+(nRadius/2)) )
 		then
 			local tableNearbyEnemyHeroes = npcTarget:GetNearbyHeroes( nRadius/2, false, BOT_MODE_NONE );
 			local nInvUnit = mutil.CountInvUnits(true, tableNearbyEnemyHeroes);
@@ -223,7 +226,7 @@ function ConsiderChrono()
 			end
 		end
 	end
-	
+
 --
 	return BOT_ACTION_DESIRE_NONE;
 end

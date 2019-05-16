@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutils = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 --[[
@@ -53,37 +56,37 @@ local function ConsiderQ()
 	if  mutils.CanBeCast(abilities[1]) == false then
 		return BOT_ACTION_DESIRE_NONE, nil;
 	end
-	
+
 	local nCastRange = mutils.GetProperCastRange(false, bot, abilities[1]:GetCastRange());
 	local nCastPoint = abilities[1]:GetCastPoint();
 	local manaCost   = abilities[1]:GetManaCost();
 
-	local enemies = bot:GetNearbyHeroes(nCastRange, true, BOT_MODE_NONE);	
+	local enemies = bot:GetNearbyHeroes(nCastRange, true, BOT_MODE_NONE);
 	if #enemies > 0 then
 		for i=1, #enemies do
 			if mutils.CanCastOnNonMagicImmune(enemies[i]) and enemies[i]:IsChanneling()
-			   and enemies[i]:HasModifier("modifier_teleporting") == false 
+			   and enemies[i]:HasModifier("modifier_teleporting") == false
 			then
 				return BOT_ACTION_DESIRE_LOW, enemies[i]:GetLocation();
 			end
 		end
 	end
-	
+
 	if bot:GetActiveMode() == BOT_MODE_ROSHAN and mutils.CanSpamSpell(bot, manaCost) then
 		local target =  bot:GetAttackTarget();
 		if target ~= nil then
 			return BOT_ACTION_DESIRE_LOW, target;
 		end
 	end
-	
+
 	if mutils.IsRetreating(bot) then
 		if #enemies > 0 then
 			local target = nil;
-			local maxDmg = 0;	
-			for i=1, #enemies do	
+			local maxDmg = 0;
+			for i=1, #enemies do
 				local estDmg = enemies[i]:GetEstimatedDamageToTarget(true, bot, 2.0, DAMAGE_TYPE_ALL);
-				if mutils.CanCastOnNonMagicImmune(enemies[i]) 
-				   and estDmg >= maxDmg 
+				if mutils.CanCastOnNonMagicImmune(enemies[i])
+				   and estDmg >= maxDmg
 				   and enemies[i]:GetAttackTarget() ~= nil
 				then
 					target = enemies[i];
@@ -95,25 +98,25 @@ local function ConsiderQ()
 			end
 		end
 	end
-	
+
 	if mutils.IsGoingOnSomeone(bot)
 	then
 		local target = bot:GetTarget();
-		if mutils.IsValidTarget(target) and mutils.CanCastOnNonMagicImmune(target) and mutils.IsInRange(target, bot, nCastRange) 
+		if mutils.IsValidTarget(target) and mutils.CanCastOnNonMagicImmune(target) and mutils.IsInRange(target, bot, nCastRange)
 		   and mutils.IsDisabled(true, target) == false
 		then
 			return BOT_ACTION_DESIRE_HIGH, target;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, nil;
-end	
+end
 
 local function ConsiderW()
 	if  mutils.CanBeCast(abilities[2]) == false then
 		return BOT_ACTION_DESIRE_NONE, nil;
 	end
-	
+
 	local nCastRange = mutils.GetProperCastRange(false, bot, abilities[2]:GetCastRange());
 	local nCastPoint = abilities[2]:GetCastPoint();
 	local manaCost   = abilities[2]:GetManaCost();
@@ -146,19 +149,19 @@ local function ConsiderW()
 			return BOT_ACTION_DESIRE_NONE, target;
 		end
 	end
-	
+
 	if bot:GetActiveMode() == BOT_MODE_ROSHAN and mutils.CanSpamSpell(bot, manaCost) then
 		local target =  bot:GetAttackTarget();
 		if target ~= nil then
 			return BOT_ACTION_DESIRE_LOW, target;
 		end
 	end
-	
+
 	if mutils.IsGoingOnSomeone(bot)
 	then
 		local target = bot:GetTarget();
-		if mutils.IsValidTarget(target) and mutils.CanCastOnNonMagicImmune(target) 
-		   and mutils.IsInRange(target, bot, bot:GetAttackRange()) == false and mutils.IsInRange(target, bot, nCastRange) 
+		if mutils.IsValidTarget(target) and mutils.CanCastOnNonMagicImmune(target)
+		   and mutils.IsInRange(target, bot, bot:GetAttackRange()) == false and mutils.IsInRange(target, bot, nCastRange)
 		then
 			local allies  = target:GetNearbyHeroes(nCastRange, true, BOT_MODE_NONE);
 			local enemies = target:GetNearbyHeroes(nCastRange, false, BOT_MODE_NONE);
@@ -167,22 +170,22 @@ local function ConsiderW()
 			end
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, nil;
-end	
+end
 
 local function ConsiderR()
 	if  mutils.CanBeCast(abilities[4]) == false then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	if mutils.IsInTeamFight(bot, 1200) and bot:GetActiveMode() ~= BOT_MODE_RETREAT then
 		local enemies = bot:GetNearbyHeroes(1000, true, BOT_MODE_NONE);
 		if #enemies >= 2 then
 			return BOT_ACTION_DESIRE_HIGH;
 		end
 	end
-	
+
 	if ( mutils.IsPushing(bot) )
 	then
 		local target = bot:GetAttackTarget();
@@ -192,34 +195,34 @@ local function ConsiderR()
 			local creeps = bot:GetNearbyLaneCreeps(1000, false);
 			if #allies >= 2 and #creeps >= 5 then
 				return BOT_ACTION_DESIRE_HIGH;
-			end	
+			end
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
-end	
+end
 
 function AbilityUsageThink()
-	
+
 	if mutils.CantUseAbility(bot) then return end
-	
+
 	castQDesire, qTarget = ConsiderQ();
 	castWDesire, wTarget = ConsiderW();
 	castRDesire	         = ConsiderR();
-	
+
 	if castRDesire > 0 then
-		bot:Action_UseAbility(abilities[4]);		
+		bot:Action_UseAbility(abilities[4]);
 		return
 	end
-	
+
 	if castQDesire > 0 then
-		bot:Action_UseAbilityOnEntity(abilities[1], qTarget);		
+		bot:Action_UseAbilityOnEntity(abilities[1], qTarget);
 		return
 	end
-	
+
 	if castWDesire > 0 then
-		bot:Action_UseAbilityOnEntity(abilities[2], wTarget);	
+		bot:Action_UseAbilityOnEntity(abilities[2], wTarget);
 		return
 	end
-	
+
 end

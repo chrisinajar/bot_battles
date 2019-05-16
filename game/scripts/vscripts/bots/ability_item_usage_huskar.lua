@@ -7,14 +7,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castIVDesire = 0;
@@ -41,21 +44,21 @@ function AbilityUsageThink()
 	castIVDesire, castIVTarget = ConsiderInnerVitality();
 	castBSDesire, castBSTarget = ConsiderBurningSpear();
 	castLBDesire, castLBTarget = ConsiderLifeBreak();
-	
 
-	if ( castLBDesire > castIVDesire and castLBDesire > castBSDesire ) 
+
+	if ( castLBDesire > castIVDesire and castLBDesire > castBSDesire )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityLB, castLBTarget );
 		return;
 	end
 
-	if ( castIVDesire > 0 ) 
+	if ( castIVDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityIV, castIVTarget );
 		return;
 	end
-	
-	if ( castBSDesire > 0 ) 
+
+	if ( castBSDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityBS, castBSTarget );
 		return;
@@ -67,7 +70,7 @@ end
 function ConsiderInnerVitality()
 
 	-- Make sure it's castable
-	if ( not abilityIV:IsFullyCastable() ) then 
+	if ( not abilityIV:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -83,19 +86,19 @@ function ConsiderInnerVitality()
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
-		if ( tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes >= 1 ) 
+		if ( tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes >= 1 )
 		then
 			return BOT_ACTION_DESIRE_HIGH, npcBot;
 		end
 	end
-	
-	if npcBot:GetActiveMode() == BOT_MODE_FARM 
+
+	if npcBot:GetActiveMode() == BOT_MODE_FARM
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if npcTarget ~= nil then
 			return BOT_ACTION_DESIRE_LOW, npcBot;
 		end
-	end	
+	end
 
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot) and npcBot:GetHealth() / npcBot:GetMaxHealth() < 0.65
@@ -106,7 +109,7 @@ function ConsiderInnerVitality()
 			return BOT_ACTION_DESIRE_HIGH, npcBot;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 
 end
@@ -115,16 +118,16 @@ end
 function ConsiderBurningSpear()
 
 	-- Make sure it's castable
-	if ( not abilityBS:IsFullyCastable() ) then 
+	if ( not abilityBS:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	-- Get some of its values
 	local nCastRange = abilityBS:GetCastRange();
 	local nDamage = abilityBS:GetAbilityDamage();
 	local nRadius = 0;
 	local nAttackRange = npcBot:GetAttackRange();
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -134,7 +137,7 @@ function ConsiderBurningSpear()
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 end
 
@@ -142,12 +145,12 @@ end
 function ConsiderLifeBreak()
 
 	-- Make sure it's castable
-	if ( not abilityLB:IsFullyCastable() or npcBot:IsRooted() ) then 
+	if ( not abilityLB:IsFullyCastable() or npcBot:IsRooted() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	local nCastRange = abilityLB:GetCastRange();
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
@@ -156,6 +159,6 @@ function ConsiderLifeBreak()
 			return BOT_ACTION_DESIRE_VERYHIGH, npcTarget;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 end

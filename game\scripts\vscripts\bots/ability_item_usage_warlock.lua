@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutils = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 --[[ Abilities
@@ -60,13 +63,13 @@ local function ConsiderQ()
 	if  mutils.CanBeCast(abilities[1]) == false then
 		return BOT_ACTION_DESIRE_NONE, nil;
 	end
-	
+
 	local nCastRange = mutils.GetProperCastRange(false, bot, abilities[1]:GetCastRange());
 	local nCastPoint = abilities[1]:GetCastPoint();
 	local manaCost   = abilities[1]:GetManaCost();
 	local nRadius    = abilities[1]:GetSpecialValueInt( "search_aoe" );
 	local nCount     = abilities[1]:GetSpecialValueInt( "count" );
-	
+
 	if mutils.IsRetreating(bot)
 	then
 		local target = mutils.GetVulnerableWeakestUnit(true, true, nCastRange, bot);
@@ -78,7 +81,7 @@ local function ConsiderQ()
 	if mutils.IsGoingOnSomeone(bot)
 	then
 		local target = bot:GetTarget();
-		if mutils.IsValidTarget(target) and mutils.CanCastOnNonMagicImmune(target) and mutils.IsInRange(target, bot, nCastRange) 
+		if mutils.IsValidTarget(target) and mutils.CanCastOnNonMagicImmune(target) and mutils.IsInRange(target, bot, nCastRange)
 		then
 			if mutils.GetUnitCountAroundEnemyTarget(target, nRadius) >= nCount/2 then
 				return BOT_ACTION_DESIRE_HIGH, target;
@@ -94,24 +97,24 @@ local function ConsiderW()
 	if  mutils.CanBeCast(abilities[2]) == false then
 		return BOT_ACTION_DESIRE_NONE, "", nil;
 	end
-	
+
 	local nCastRange = mutils.GetProperCastRange(false, bot, abilities[2]:GetCastRange());
 	local nCastPoint = abilities[2]:GetCastPoint();
 	local manaCost   = abilities[2]:GetManaCost();
 	local nRadius    = 0;
-	
+
 	if abilities[5]:IsTrained() then nRadius = 250 end
-	
-	if DotaTime() >= lastCheck + 2.0 then 
+
+	if DotaTime() >= lastCheck + 2.0 then
 		local weakest = nil;
 		local minHP = 100000;
 		local allies = bot:GetNearbyHeroes(nCastRange, false, BOT_MODE_NONE);
 		if #allies > 0 then
 			for i=1,#allies do
 				if allies[i]:HasModifier("modifier_warlock_shadow_word") == false
-				   and mutils.CanCastOnNonMagicImmune(allies[i]) 
+				   and mutils.CanCastOnNonMagicImmune(allies[i])
 				   and allies[i]:GetHealth() <= minHP
-     			   and allies[i]:GetHealth() <= 0.55*allies[i]:GetMaxHealth()  
+     			   and allies[i]:GetHealth() <= 0.55*allies[i]:GetMaxHealth()
 				then
 					weakest = allies[i];
 					minHP = allies[i]:GetHealth();
@@ -127,20 +130,20 @@ local function ConsiderW()
 		end
 		lastCheck = DotaTime();
 	end
-	
-	if mutils.IsInTeamFight(bot, 1200) and abilities[5]:IsTrained() 
+
+	if mutils.IsInTeamFight(bot, 1200) and abilities[5]:IsTrained()
 	then
 		local locationAoE = bot:FindAoELocation( true, true, bot:GetLocation(), nCastRange, nRadius, 0, 0 );
-		if ( locationAoE.count >= 2 ) 
+		if ( locationAoE.count >= 2 )
 		then
 			return BOT_ACTION_DESIRE_LOW, "loc", locationAoE.targetloc;
 		end
 	end
-	
+
 	if mutils.IsGoingOnSomeone(bot)
 	then
 		local target = bot:GetTarget();
-		if mutils.IsValidTarget(target) and mutils.CanCastOnNonMagicImmune(target) and mutils.IsInRange(target, bot, nCastRange) 
+		if mutils.IsValidTarget(target) and mutils.CanCastOnNonMagicImmune(target) and mutils.IsInRange(target, bot, nCastRange)
 		   and target:HasModifier("modifier_warlock_shadow_word") == false
 		then
 			if abilities[5]:IsTrained() then
@@ -166,25 +169,25 @@ local function ConsiderE()
 	if not mutils.CanBeCast(abilities[3]) then
 		return BOT_ACTION_DESIRE_NONE, nil;
 	end
-	
+
 	if abilities[4]:IsFullyCastable() and bot:GetMana() >= GetTotalMana({3,4}) then
 		return BOT_ACTION_DESIRE_NONE, nil;
-	elseif abilities[4]:IsFullyCastable() == false 	
-		   and abilities[1]:IsFullyCastable() 
-		   and abilities[2]:IsFullyCastable() 
+	elseif abilities[4]:IsFullyCastable() == false
+		   and abilities[1]:IsFullyCastable()
+		   and abilities[2]:IsFullyCastable()
 	then
 		return BOT_ACTION_DESIRE_NONE, nil;
 	end
-	
+
 	local nCastRange = mutils.GetProperCastRange(false, bot, abilities[3]:GetCastRange());
 	local nCastPoint = abilities[3]:GetCastPoint();
 	local manaCost   = abilities[3]:GetManaCost();
 	local nRadius    = abilities[3]:GetSpecialValueInt( "aoe" );
-	
+
 	if mutils.IsInTeamFight(bot, 1200)
 	then
 		local locationAoE = bot:FindAoELocation( true, true, bot:GetLocation(), nCastRange, nRadius/2, 0, 0 );
-		if ( locationAoE.count >= 2 ) 
+		if ( locationAoE.count >= 2 )
 		then
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
@@ -194,15 +197,15 @@ local function ConsiderE()
 	if mutils.IsGoingOnSomeone(bot)
 	then
 		local npcTarget = bot:GetTarget();
-		if mutils.IsValidTarget(npcTarget) and mutils.CanCastOnNonMagicImmune(npcTarget) and mutils.IsInRange(npcTarget, bot, nCastRange + 200) 
+		if mutils.IsValidTarget(npcTarget) and mutils.CanCastOnNonMagicImmune(npcTarget) and mutils.IsInRange(npcTarget, bot, nCastRange + 200)
 		then
 			local enemies = npcTarget:GetNearbyHeroes(nRadius, false, BOT_MODE_NONE);
 			if #enemies >= 2 then
 				return BOT_ACTION_DESIRE_HIGH, npcTarget:GetExtrapolatedLocation(nCastPoint);
-			end	
+			end
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, nil;
 end
 
@@ -210,59 +213,59 @@ local function ConsiderR()
 	if not mutils.CanBeCast(abilities[4]) then
 		return BOT_ACTION_DESIRE_NONE, nil;
 	end
-	
+
 	if abilities[1]:IsFullyCastable() and bot:GetMana() >= GetTotalMana({1,3,4}) then
 		return BOT_ACTION_DESIRE_NONE, nil;
 	end
-	
+
 	local nCastRange = mutils.GetProperCastRange(false, bot, abilities[4]:GetCastRange());
 	local nCastPoint = abilities[4]:GetCastPoint();
 	local manaCost   = abilities[4]:GetManaCost();
 	local nRadius    = abilities[4]:GetSpecialValueInt( "aoe" );
-	
+
 	if mutils.IsInTeamFight(bot, 1200)
 	then
 		local locationAoE = bot:FindAoELocation( true, true, bot:GetLocation(), nCastRange, nRadius/2, 0, 0 );
-		if ( locationAoE.count >= 2 ) 
+		if ( locationAoE.count >= 2 )
 		then
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, nil;
 end
 
 function AbilityUsageThink()
-	
+
 	if mutils.CantUseAbility(bot) then return end
-	
+
 	castQDesire, qTarget 		= ConsiderQ();
 	castWDesire, wType, wTarget = ConsiderW();
 	castEDesire, eTarget 		= ConsiderE();
 	castRDesire, rTarget        = ConsiderR();
-	
+
 	if castRDesire > 0 then
-		bot:Action_UseAbilityOnLocation(abilities[4], rTarget);		
+		bot:Action_UseAbilityOnLocation(abilities[4], rTarget);
 		return
 	end
-	
+
 	if castQDesire > 0 then
-		bot:Action_UseAbilityOnEntity(abilities[1], qTarget);		
+		bot:Action_UseAbilityOnEntity(abilities[1], qTarget);
 		return
 	end
-	
+
 	if castWDesire > 0 then
 		if wType == "loc" then
 			bot:Action_UseAbilityOnLocation(abilities[2], wTarget);
 		else
-			bot:Action_UseAbilityOnEntity(abilities[2], wTarget);	
-		end	
+			bot:Action_UseAbilityOnEntity(abilities[2], wTarget);
+		end
 		return
 	end
-	
+
 	if castEDesire > 0 then
-		bot:Action_UseAbilityOnLocation(abilities[3], eTarget);		
+		bot:Action_UseAbilityOnLocation(abilities[3], eTarget);
 		return
 	end
-	
+
 end

@@ -8,14 +8,17 @@ local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castOODesire = 0;
@@ -36,21 +39,21 @@ local skUse = false;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	if abilityOO == nil then abilityOO = npcBot:GetAbilityByName( "leshrac_split_earth" ) end
 	if abilityTD == nil then abilityTD = npcBot:GetAbilityByName( "leshrac_diabolic_edict" ) end
 	if abilityFB == nil then abilityFB = npcBot:GetAbilityByName( "leshrac_lightning_storm" ) end
 	if abilityPN == nil then abilityPN = npcBot:GetAbilityByName( "leshrac_pulse_nova" ) end
-		
+
 	local radius = abilityOO:GetSpecialValueInt( "radius" );
 
-	if abilityOO:IsInAbilityPhase() and not IsThereHeroWithinRadius(splitEarthLoc, radius) 
-	   and not skUse and npcBot:GetActiveMode() ~= BOT_MODE_ROSHAN 
+	if abilityOO:IsInAbilityPhase() and not IsThereHeroWithinRadius(splitEarthLoc, radius)
+	   and not skUse and npcBot:GetActiveMode() ~= BOT_MODE_ROSHAN
 	then
 		npcBot:Action_ClearActions(true);
 		return
-	end 	
-		
+	end
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -61,37 +64,37 @@ function AbilityUsageThink()
 	castPNONDesire = ConsiderPulseNovaOn();
 	castPNOFFDesire = ConsiderPulseNovaOff();
 
-	if ( castOODesire > 0 ) 
-	then	
+	if ( castOODesire > 0 )
+	then
 		splitEarthLoc = castOOLocation;
 		npcBot:Action_UseAbilityOnLocation( abilityOO, castOOLocation );
 		return;
 	end
-	
-	if ( castFBDesire > 0 ) 
+
+	if ( castFBDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityFB, castFBTarget );
 		return;
 	end
-	
-	if ( castTDDesire > 0 ) 
+
+	if ( castTDDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityTD );
 		return;
 	end
-	
-	if ( castPNONDesire > 0 ) 
+
+	if ( castPNONDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityPN );
 		return;
 	end
-	
-	if ( castPNOFFDesire > 0 ) 
+
+	if ( castPNOFFDesire > 0 )
 	then
 		npcBot:Action_UseAbility( abilityPN );
 		return;
 	end
-	
+
 
 end
 
@@ -108,8 +111,8 @@ end
 function ConsiderOverwhelmingOdds()
 
 	-- Make sure it's castable
-	if ( not abilityOO:IsFullyCastable() ) 
-	then 
+	if ( not abilityOO:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -120,9 +123,9 @@ function ConsiderOverwhelmingOdds()
 	local nAttackRange = npcBot:GetAttackRange();
 	local nCastPoint = abilityOO:GetCastPoint( ) + abilityOO:GetSpecialValueFloat( "delay" );
 	local nDamage = abilityOO:GetAbilityDamage();
-	
+
 	local skThere, skLoc = mutil.IsSandKingThere(npcBot, nCastRange+200, 2.0);
-	
+
 	if skThere then
 		skUse = true;
 		return BOT_ACTION_DESIRE_MODERATE, skLoc;
@@ -136,15 +139,15 @@ function ConsiderOverwhelmingOdds()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) 
+			if npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 )
 			then
 				skUse = false;
 				return BOT_ACTION_DESIRE_MODERATE, npcEnemy:GetLocation();
 			end
 		end
 	end
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange)  )
@@ -153,7 +156,7 @@ function ConsiderOverwhelmingOdds()
 			return BOT_ACTION_DESIRE_LOW, npcTarget:GetLocation();
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local locationAoE = npcBot:FindAoELocation( true, true, npcBot:GetLocation(), nAttackRange, nRadius, nCastPoint, 0 );
@@ -162,7 +165,7 @@ function ConsiderOverwhelmingOdds()
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -180,11 +183,11 @@ end
 function ConsiderTimeDilation()
 
 	-- Make sure it's castable
-	if ( not abilityTD:IsFullyCastable() ) 
-	then 
+	if ( not abilityTD:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	-- Get some of its values
 	local nRadius = abilityTD:GetSpecialValueInt("radius");
 
@@ -194,14 +197,14 @@ function ConsiderTimeDilation()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) 
+			if npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
 	end
-	
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nRadius)  )
@@ -209,7 +212,7 @@ function ConsiderTimeDilation()
 			return BOT_ACTION_DESIRE_LOW;
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
@@ -217,7 +220,7 @@ function ConsiderTimeDilation()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	if  mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot)
 	then
 		local tableNearbyEnemyCreeps = npcBot:GetNearbyCreeps( nRadius, true );
@@ -228,7 +231,7 @@ function ConsiderTimeDilation()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
@@ -237,7 +240,7 @@ function ConsiderTimeDilation()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 --
 	return BOT_ACTION_DESIRE_NONE;
 end
@@ -246,7 +249,7 @@ end
 function ConsiderFireblast()
 
 	-- Make sure it's castable
-	if ( not abilityFB:IsFullyCastable() ) then 
+	if ( not abilityFB:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -265,7 +268,7 @@ function ConsiderFireblast()
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 			then
 				return BOT_ACTION_DESIRE_HIGH, npcEnemy;
 			end
@@ -273,15 +276,15 @@ function ConsiderFireblast()
 	end
 
 	-- If we're pushing or defending a lane and can hit 4+ creeps, go for it
-	if ( mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot) ) and npcBot:GetMana()/npcBot:GetMaxMana() > 0.65 
+	if ( mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot) ) and npcBot:GetMana()/npcBot:GetMaxMana() > 0.65
 	then
 		local tableNearbyEnemyCreeps = npcBot:GetNearbyLaneCreeps( nCastRange, true );
-		if tableNearbyEnemyCreeps ~= nil and #tableNearbyEnemyCreeps >= 3 and tableNearbyEnemyCreeps[1] ~= nil 
+		if tableNearbyEnemyCreeps ~= nil and #tableNearbyEnemyCreeps >= 3 and tableNearbyEnemyCreeps[1] ~= nil
 		then
 			return BOT_ACTION_DESIRE_HIGH, tableNearbyEnemyCreeps[1];
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -291,7 +294,7 @@ function ConsiderFireblast()
 			return BOT_ACTION_DESIRE_HIGH, npcTarget;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 
 end
@@ -299,31 +302,31 @@ end
 function ConsiderPulseNovaOn()
 
 
-	if ( not abilityPN:IsFullyCastable() ) then 
+	if ( not abilityPN:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	if npcBot:HasModifier("modifier_leshrac_pulse_nova") then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local nRadius = abilityPN:GetSpecialValueInt("radius")
 	local nDamage = abilityPN:GetSpecialValueInt("damage")
-	
-	
+
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy)  ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy)  )
 			then
 				return BOT_ACTION_DESIRE_MODERATE;
 			end
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
@@ -331,7 +334,7 @@ function ConsiderPulseNovaOn()
 			return BOT_ACTION_DESIRE_MODERATE;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -341,27 +344,27 @@ function ConsiderPulseNovaOn()
 			return BOT_ACTION_DESIRE_HIGH;
 		end
 	end
-	
-	
+
+
 	return BOT_ACTION_DESIRE_NONE;
 end
 
 function ConsiderPulseNovaOff()
-	
-	if ( not abilityPN:IsFullyCastable() ) then 
+
+	if ( not abilityPN:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	if not npcBot:HasModifier("modifier_leshrac_pulse_nova") then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local nRadius = abilityPN:GetSpecialValueInt("radius")
-	
+
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
 	if (tableNearbyEnemyHeroes == nil or #tableNearbyEnemyHeroes == 0) then
 		return BOT_ACTION_DESIRE_MODERATE;
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
 end

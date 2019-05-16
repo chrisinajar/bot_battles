@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castDCDesire = 0;
@@ -36,7 +39,7 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -56,54 +59,54 @@ function AbilityUsageThink()
 	castRCDesire, castRCLocation = ConsiderRelocate();
 	moveDesire, moveLocation = ConsiderMoving()
 
-	if ( castRCDesire > 0 ) 
+	if ( castRCDesire > 0 )
 	then
 	--print("useRC")
 		npcBot:Action_UseAbilityOnLocation( abilityRC, castRCLocation );
 		return;
 	end
-	
-	if ( castDCDesire > 0 ) 
+
+	if ( castDCDesire > 0 )
 	then
 	--print("useDC")
 		npcBot:Action_UseAbilityOnEntity( abilityDC, castDCTarget );
 		return;
 	end
-	
-	if ( castOCDesire > 0 ) 
+
+	if ( castOCDesire > 0 )
 	then
 	--print("useOC")
 		npcBot:Action_UseAbility( abilityOC );
 		return;
 	end
-	
-	if ( castSPDesire > 0 ) 
+
+	if ( castSPDesire > 0 )
 	then
 		--print("useSP")
 		npcBot:Action_UseAbility( abilitySP );
 		return;
 	end
-	
-	if ( castSPIDesire > 0 ) 
+
+	if ( castSPIDesire > 0 )
 	then
 	--print("useSPI")
 		npcBot:Action_UseAbility( abilitySPI );
 		return;
 	end
-	
-	if ( castSPODesire > 0 ) 
+
+	if ( castSPODesire > 0 )
 	then
 	--print("useSPO")
 		npcBot:Action_UseAbility( abilitySPO );
 		return;
 	end
-	--[[if moveDesire > 0 
+	--[[if moveDesire > 0
 	then
 		npcBot:Action_MoveToLocation( moveLocation );
 		return;
 	end]]--
-	
-	
+
+
 end
 
 
@@ -121,21 +124,21 @@ end
 function ConsiderDeathCoil()
 
 	-- Make sure it's castable
-	if ( not abilityDC:IsFullyCastable() or abilityDC:IsHidden() or npcBot:HasModifier("modifier_wisp_tether") ) then 
+	if ( not abilityDC:IsFullyCastable() or abilityDC:IsHidden() or npcBot:HasModifier("modifier_wisp_tether") ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
-	
+
 	if castRCDesire > 0 then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
 	-- Get some of its values
 	local nCastRange = abilityDC:GetCastRange();
-	
+
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
-	
+
 	-- If we're seriously retreating, see if we can suicide
-	if mutil.IsRetreating(npcBot) and tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes > 0 
+	if mutil.IsRetreating(npcBot) and tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes > 0
 	then
 		local numPlayer =  GetTeamPlayers(GetTeam());
 		local maxDist = 0;
@@ -192,10 +195,10 @@ function ConsiderDeathCoil()
 
 	-- If we're going after someone
 	if ( npcBot:GetActiveMode() == BOT_MODE_ATTACK or
-		 npcBot:GetActiveMode() == BOT_MODE_DEFEND_ALLY ) 
+		 npcBot:GetActiveMode() == BOT_MODE_DEFEND_ALLY )
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( npcTarget ~= nil and GetUnitToUnitDistance( npcTarget, npcBot ) < 1000 ) 
+		if ( npcTarget ~= nil and GetUnitToUnitDistance( npcTarget, npcBot ) < 1000 )
 		then
 			local numPlayer =  GetTeamPlayers(GetTeam());
 			local minDist = 10000;
@@ -213,13 +216,13 @@ function ConsiderDeathCoil()
 			end
 		end
 	end
-	
+
 	if npcBot:GetActiveMode() == BOT_MODE_ROAM or
 	   npcBot:GetActiveMode() == BOT_MODE_TEAM_ROAM or
-	   npcBot:GetActiveMode() == BOT_MODE_GANK 
+	   npcBot:GetActiveMode() == BOT_MODE_GANK
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( npcTarget ~= nil and GetUnitToUnitDistance( npcTarget, npcBot ) > 5000 ) 
+		if ( npcTarget ~= nil and GetUnitToUnitDistance( npcTarget, npcBot ) > 5000 )
 		then
 			local tableNearbyAllies = npcBot:GetNearbyHeroes( 1000, false, BOT_MODE_NONE  );
 			if tableNearbyAllies ~= nil and #tableNearbyAllies >= 1 and abilityRC:IsFullyCastable() then
@@ -227,7 +230,7 @@ function ConsiderDeathCoil()
 			end
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 
 end
@@ -235,18 +238,18 @@ end
 function ConsiderSpirits()
 
 	-- Make sure it's castable
-	if ( not abilitySP:IsFullyCastable() ) then 
+	if ( not abilitySP:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 	local nMaxRange = abilitySP:GetSpecialValueInt("max_range");
 	--[[if npcBot:DistanceFromFountain() > 1000 then
 		return BOT_ACTION_DESIRE_MODERATE
 	end]]--
-	
+
 	if  mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( npcTarget ~= nil and GetUnitToUnitDistance( npcTarget, npcBot ) < nMaxRange ) 
+		if ( npcTarget ~= nil and GetUnitToUnitDistance( npcTarget, npcBot ) < nMaxRange )
 		then
 			return BOT_ACTION_DESIRE_MODERATE
 		end
@@ -258,14 +261,14 @@ end
 function ConsiderSpiritsIn()
 
 	-- Make sure it's castable
-	if ( not abilitySPI:IsFullyCastable() or abilitySPI:IsHidden() or not npcBot:HasModifier("modifier_wisp_spirits") ) then 
+	if ( not abilitySPI:IsFullyCastable() or abilitySPI:IsHidden() or not npcBot:HasModifier("modifier_wisp_spirits") ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	local nMinRange = abilitySP:GetSpecialValueInt("min_range");
 	local nMaxRange = abilitySP:GetSpecialValueInt("max_range");
 	local nRadius = abilitySP:GetSpecialValueInt("radius");
-	
+
 	if  mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
@@ -276,46 +279,46 @@ function ConsiderSpiritsIn()
 			end
 		end
 	end
-	
-	
+
+
 	return BOT_ACTION_DESIRE_NONE;
 end
 
 function ConsiderSpiritsOut()
-	
+
 	-- Make sure it's castable
-	if ( not abilitySPO:IsFullyCastable() or abilitySPO:IsHidden() or not npcBot:HasModifier("modifier_wisp_spirits") ) then 
+	if ( not abilitySPO:IsFullyCastable() or abilitySPO:IsHidden() or not npcBot:HasModifier("modifier_wisp_spirits") ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
 
 	local nMinRange = abilitySP:GetSpecialValueInt("min_range");
 	local nMaxRange = abilitySP:GetSpecialValueInt("max_range");
 	local nRadius = abilitySP:GetSpecialValueInt("radius");
-	
+
 	if  mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( npcTarget ~= nil and GetUnitToUnitDistance( npcTarget, npcBot ) >= nMaxRange/2  ) 
+		if ( npcTarget ~= nil and GetUnitToUnitDistance( npcTarget, npcBot ) >= nMaxRange/2  )
 		then
 			if not abilitySPO:GetToggleState() then
 				return BOT_ACTION_DESIRE_MODERATE
 			end
 		end
 	end
-	
-	
+
+
 	return BOT_ACTION_DESIRE_NONE;
 end
 
 function ConsiderOverCharge()
 
 	-- Make sure it's castable
-	if ( not abilityOC:IsFullyCastable() ) then 
+	if ( not abilityOC:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
-	local tetheredAlly = nil; 
-	
+
+	local tetheredAlly = nil;
+
 	local NearbyAttackingAllies = npcBot:GetNearbyHeroes( 1000, false, BOT_MODE_ATTACK );
 	for _,ally in pairs(NearbyAttackingAllies)
 	do
@@ -323,12 +326,12 @@ function ConsiderOverCharge()
 			tetheredAlly = ally
 		end
 	end
-	
+
 	if npcBot:GetActiveMode() == BOT_MODE_ATTACK and tetheredAlly ~= nil then
 		local npcTarget = npcBot:GetTarget();
 		local allyAttackRange = tetheredAlly:GetAttackRange();
 		local nAttackRange = npcBot:GetAttackRange();
-		if npcTarget ~= nil and npcTarget:IsHero() and 
+		if npcTarget ~= nil and npcTarget:IsHero() and
 			( GetUnitToUnitDistance(npcTarget ,tetheredAlly) <= allyAttackRange or  GetUnitToUnitDistance(npcTarget ,npcBot) <= nAttackRange )
 		then
 			if  npcBot:HasModifier('modifier_wisp_tether') and npcBot:GetHealth()/npcBot:GetMaxHealth() > .3 and npcBot:GetMana()/npcBot:GetMaxMana() > .15 then
@@ -344,25 +347,25 @@ function ConsiderOverCharge()
 			if abilityOC:GetToggleState() then
 				return BOT_ACTION_DESIRE_MODERATE
 			end
-		end	
+		end
 	else
 		if abilityOC:GetToggleState() then
 			return BOT_ACTION_DESIRE_MODERATE
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE;
 end
 
 function ConsiderRelocate()
 
 	-- Make sure it's castable
-	if ( not abilityRC:IsFullyCastable() ) then 
+	if ( not abilityRC:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE;
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
-	if ( npcBot:GetActiveMode() == BOT_MODE_RETREAT and npcBot:GetActiveModeDesire() >= BOT_MODE_DESIRE_HIGH ) 
+	if ( npcBot:GetActiveMode() == BOT_MODE_RETREAT and npcBot:GetActiveModeDesire() >= BOT_MODE_DESIRE_HIGH )
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( 1000, true, BOT_MODE_NONE );
 		if tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes > 1 and npcBot:WasRecentlyDamagedByAnyHero(1.0) then
@@ -370,7 +373,7 @@ function ConsiderRelocate()
 			return BOT_ACTION_DESIRE_MODERATE, location;
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local lowHpAlly = nil;
@@ -399,7 +402,7 @@ function ConsiderRelocate()
 	if  mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if ( npcTarget ~= nil and GetUnitToUnitDistance( npcTarget, npcBot ) > 3000  ) 
+		if ( npcTarget ~= nil and GetUnitToUnitDistance( npcTarget, npcBot ) > 3000  )
 		then
 			local tableNearbyAllies = npcTarget:GetNearbyHeroes( 1300, true, BOT_MODE_NONE  );
 			if tableNearbyAllies ~= nil and #tableNearbyAllies >= 2 and abilityDC:IsFullyCastable() then
@@ -407,8 +410,8 @@ function ConsiderRelocate()
 			end
 		end
 	end
-	
-	return BOT_ACTION_DESIRE_NONE, 0; 
+
+	return BOT_ACTION_DESIRE_NONE, 0;
 end
 
 function ConsiderMoving()
@@ -416,6 +419,6 @@ function ConsiderMoving()
 	if DotaTime() < 0 and npcBot:DistanceFromFountain() < 1000 then
 		return BOT_ACTION_DESIRE_HIGH, GetTower( GetTeam(), TOWER_MID_3 ):GetLocation() + RandomVector(200);
 	end
-	
-	return BOT_ACTION_DESIRE_NONE, 0; 
+
+	return BOT_ACTION_DESIRE_NONE, 0;
 end

@@ -6,14 +6,17 @@ local ability_item_usage_generic = dofile( GetScriptDirectory().."/ability_item_
 local utils = require(GetScriptDirectory() ..  "/util")
 local mutil = require(GetScriptDirectory() ..  "/MyUtility")
 
-function AbilityLevelUpThink()  
-	ability_item_usage_generic.AbilityLevelUpThink(); 
+function AbilityLevelUpThink()
+	ability_item_usage_generic.AbilityLevelUpThink();
 end
 function BuybackUsageThink()
 	ability_item_usage_generic.BuybackUsageThink();
 end
 function CourierUsageThink()
 	ability_item_usage_generic.CourierUsageThink();
+end
+function ItemUsageThink()
+  ability_item_usage_generic.ItemUsageThink()
 end
 
 local castDRDesire = 0;
@@ -31,7 +34,7 @@ local npcBot = nil;
 function AbilityUsageThink()
 
 	if npcBot == nil then npcBot = GetBot(); end
-	
+
 	-- Check if we're already using an ability
 	if mutil.CanNotUseAbility(npcBot) then return end
 
@@ -46,25 +49,25 @@ function AbilityUsageThink()
 	castSPDesire, castSPLocation = ConsiderShadowPoison();
 	castDPDesire, castDPTarget = ConsiderDemonicPurge();
 
-	if ( castDRDesire > castSCDesire and castDRDesire > castSPDesire and castDRDesire > castDPDesire ) 
+	if ( castDRDesire > castSCDesire and castDRDesire > castSPDesire and castDRDesire > castDPDesire )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityDR, castDRTarget );
 		return;
 	end
 
-	if ( castSCDesire > 0 ) 
+	if ( castSCDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilitySC, castSCLocation );
 		return;
 	end
-	
-	if ( castSPDesire > 0 ) 
+
+	if ( castSPDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnLocation( abilitySP, castSPLocation );
 		return;
 	end
-	
-	if ( castDPDesire > 0 ) 
+
+	if ( castDPDesire > 0 )
 	then
 		npcBot:Action_UseAbilityOnEntity( abilityDP, castDPTarget );
 		return;
@@ -75,7 +78,7 @@ end
 function ConsiderDisruption()
 
 	-- Make sure it's castable
-	if ( not abilityDR:IsFullyCastable() ) then 
+	if ( not abilityDR:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -90,32 +93,32 @@ function ConsiderDisruption()
 		then
 			return BOT_ACTION_DESIRE_MODERATE, myFriend;
 		end
-	end	
-	
-	
+	end
+
+
 	-- Check for a channeling enemy
 	local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange+200, true, BOT_MODE_NONE );
 	for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 	do
-		if ( npcEnemy:IsChanneling() and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+		if ( npcEnemy:IsChanneling() and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 		then
 			return BOT_ACTION_DESIRE_HIGH, npcEnemy;
 		end
 	end
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy) )
 			then
 				return BOT_ACTION_DESIRE_HIGH, npcEnemy;
 			end
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local npcMostDangerousEnemy = nil;
@@ -140,7 +143,7 @@ function ConsiderDisruption()
 			return BOT_ACTION_DESIRE_HIGH, npcMostDangerousEnemy;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if  mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -151,7 +154,7 @@ function ConsiderDisruption()
 			return BOT_ACTION_DESIRE_HIGH, npcTarget;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 
 end
@@ -160,8 +163,8 @@ end
 function ConsiderSoulCatcher()
 
 	-- Make sure it's castable
-	if ( not abilitySC:IsFullyCastable() ) 
-	then 
+	if ( not abilitySC:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -172,7 +175,7 @@ function ConsiderSoulCatcher()
 	--------------------------------------
 	-- Mode based usage
 	--------------------------------------
-	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  ) 
+	if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
 	then
 		local npcTarget = npcBot:GetAttackTarget();
 		if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange)  )
@@ -180,13 +183,13 @@ function ConsiderSoulCatcher()
 			return BOT_ACTION_DESIRE_LOW, npcTarget:GetLocation();
 		end
 	end
-	
-	
+
+
 	-- If we're going after someone
 	if  mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200) 
+		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200)
 		then
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget:GetLocation();
 		end
@@ -198,13 +201,13 @@ end
 function ConsiderShadowPoison()
 
 	-- Make sure it's castable
-	if ( not abilitySP:IsFullyCastable() ) 
-	then 
+	if ( not abilitySP:IsFullyCastable() )
+	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 --
 	-- If we want to cast Laguna Blade at all, bail
-	--[[if ( castPRDesire > 0 ) 
+	--[[if ( castPRDesire > 0 )
 	then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end]]--
@@ -219,26 +222,26 @@ function ConsiderShadowPoison()
 	--------------------------------------
 
 	-- If mana is full and we're laning just hit hero
-	if ( npcBot:GetActiveMode() == BOT_MODE_LANING and 
-		npcBot:GetMana()/npcBot:GetMaxMana() >= 0.65  ) 
+	if ( npcBot:GetActiveMode() == BOT_MODE_LANING and
+		npcBot:GetMana()/npcBot:GetMaxMana() >= 0.65  )
 	then
 		local locationAoE = npcBot:FindAoELocation( true, true, npcBot:GetLocation(), nCastRange, nRadius/2, 0, 0 );
 		if ( locationAoE.count >= 1 ) then
 			return BOT_ACTION_DESIRE_LOW, locationAoE.targetloc;
 		end
 	end
-	
+
 	-- If we're pushing or defending a lane and can hit 4+ creeps, go for it
 	if ( mutil.IsDefending(npcBot) or mutil.IsPushing(npcBot) ) and  npcBot:GetMana()/npcBot:GetMaxMana() >= 0.65
 	then
 		local locationAoE = npcBot:FindAoELocation( true, false, npcBot:GetLocation(), nCastRange, nRadius, 0, 0 );
-		if ( locationAoE.count >= 4 ) 
+		if ( locationAoE.count >= 4 )
 		then
 			return BOT_ACTION_DESIRE_MODERATE, locationAoE.targetloc;
 		end
 	end
 
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
@@ -257,7 +260,7 @@ end
 function ConsiderDemonicPurge()
 
 	-- Make sure it's castable
-	if ( not abilityDP:IsFullyCastable() ) then 
+	if ( not abilityDP:IsFullyCastable() ) then
 		return BOT_ACTION_DESIRE_NONE, 0;
 	end
 
@@ -266,21 +269,21 @@ function ConsiderDemonicPurge()
 	--------------------------------------
 	-- Mode based usage
 	--------------------------------------
-	
+
 	-- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
 	if mutil.IsRetreating(npcBot)
 	then
 		local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nCastRange, true, BOT_MODE_NONE );
 		for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
 		do
-			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnMagicImmune(npcEnemy) 
-				and not npcEnemy:HasModifier("modifier_shadow_demon_purge_slow")  ) 
+			if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnMagicImmune(npcEnemy)
+				and not npcEnemy:HasModifier("modifier_shadow_demon_purge_slow")  )
 			then
 				return BOT_ACTION_DESIRE_HIGH, npcEnemy;
 			end
 		end
 	end
-	
+
 	if mutil.IsInTeamFight(npcBot, 1200)
 	then
 		local npcMostDangerousEnemy = nil;
@@ -305,18 +308,18 @@ function ConsiderDemonicPurge()
 			return BOT_ACTION_DESIRE_MODERATE, npcMostDangerousEnemy;
 		end
 	end
-	
+
 	-- If we're going after someone
 	if mutil.IsGoingOnSomeone(npcBot)
 	then
 		local npcTarget = npcBot:GetTarget();
-		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200) 
+		if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nCastRange+200)
 		   and not npcTarget:HasModifier("modifier_shadow_demon_purge_slow") and not mutil.IsDisabled(true, npcTarget)
 		then
 			return BOT_ACTION_DESIRE_MODERATE, npcTarget;
 		end
 	end
-	
+
 	return BOT_ACTION_DESIRE_NONE, 0;
 
 end

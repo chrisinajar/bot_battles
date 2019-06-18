@@ -42,6 +42,20 @@ function BotController:Init()
     end)
   end
   setupVision()
+
+  ChatCommand:LinkCommand('-modifiers', function ()
+    local function printModifiers (playerID)
+      local hero = PlayerResource:GetSelectedHeroEntity(playerID)
+      if not hero or not hero:IsAlive() then
+        return
+      end
+      print(hero:GetName())
+      for i = 1,hero:GetModifierCount() do
+        print(' - ' .. hero:GetModifierNameByIndex(i))
+      end
+    end
+    each(printModifiers, PlayerResource:GetAllTeamPlayerIDs())
+  end)
 end
 
 function BotController:SetTeams (selection, items)
@@ -129,6 +143,9 @@ function BotController:InitBot (hero, team)
   Timers:CreateTimer(DELAY_TO_WALK, function()
     if not hero or hero:IsNull() then
       return
+    end
+    if not hero:IsIdle() then
+      return 1
     end
     hero:MoveToPositionAggressive( self.locations.center + RandomVector(RandomFloat(200, 600)))
     if (hero:GetAbsOrigin() - self.locations[team]):Length2D() < 1500 then

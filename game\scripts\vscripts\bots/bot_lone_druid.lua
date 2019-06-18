@@ -244,7 +244,7 @@ function ConsiderMove(hMinionUnit)
 	local target = npcBot:GetAttackTarget();
 
 	if target == nil or ( target ~= nil and not CanBeAttacked(target) ) or (target ~= nil and GetUnitToUnitDistance(target, npcBot) > ProxRange) then
-		return BOT_ACTION_DESIRE_MODERATE, npcBot:GetXUnitsTowardsLocation(GetAncient(GetOpposingTeam()):GetLocation(), 200);
+		return BOT_ACTION_DESIRE_MODERATE, npcBot:GetXUnitsTowardsLocation(Vector(0, 0, 0), 200);
 	end
 
 	return BOT_ACTION_DESIRE_NONE, 0;

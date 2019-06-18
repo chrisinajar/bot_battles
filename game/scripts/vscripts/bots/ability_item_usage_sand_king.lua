@@ -19,5 +19,6 @@ function ItemUsageThink()
   ability_item_usage_generic.ItemUsageThink()
 end
 function AbilityUsageThink()
+  -- print('sand king?')
   ability_item_usage_generic.AbilityUsageThink()
 end

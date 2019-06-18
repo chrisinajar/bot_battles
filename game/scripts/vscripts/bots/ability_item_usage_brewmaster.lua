@@ -36,23 +36,31 @@ function AbilityUsageThink()
   if mutil.CanNotUseAbility(npcBot) then return end
 
   if abilityTC == nil then abilityTC = npcBot:GetAbilityByName( "brewmaster_thunder_clap" ) end
+  if abilityDB == nil then abilityDB = npcBot:GetAbilityByName( "brewmaster_drunken_brawler" ) end
   if abilityCB == nil then abilityCB = npcBot:GetAbilityByName( "brewmaster_cinder_brew" ) end
   if abilityPS == nil then abilityPS = npcBot:GetAbilityByName( "brewmaster_primal_split" ) end
 
   -- Consider using each ability
-  castTCDesire = ConsiderThunderClap();
+  castTCDesire = ConsiderThunderClap(abilityTC);
+  castDBDesire = ConsiderThunderClap(abilityDB);
   castDHDesire, castDHTarget = ConsiderDrunkenHaze();
   castPSDesire = ConsiderPrimalSplit();
 
   if ( castDHDesire > castPSDesire and castDHDesire > castTCDesire )
   then
-    npcBot:Action_UseAbilityOnEntity( abilityCB, castDHTarget );
+    npcBot:Action_UseAbilityOnLocation( abilityCB, castDHTarget:GetLocation() );
     return;
   end
 
   if ( castTCDesire > 0 )
   then
     npcBot:Action_UseAbility( abilityTC );
+    return;
+  end
+
+  if ( castDBDesire > 0 )
+  then
+    npcBot:Action_UseAbility( abilityDB );
     return;
   end
   if ( castPSDesire > 0  )
@@ -63,53 +71,22 @@ function AbilityUsageThink()
 
 end
 
-function ConsiderThunderClap()
+function ConsiderThunderClap(ability)
 
   -- Make sure it's castable
-  if ( not abilityTC:IsFullyCastable() ) then
+  if ( not ability:IsFullyCastable() ) then
     return BOT_ACTION_DESIRE_NONE;
   end
 
 
   -- Get some of its values
-  local nRadius = abilityTC:GetSpecialValueInt( "radius" );
+  local nRadius = ability:GetSpecialValueInt( "radius" );
   local nCastRange = 0;
-  local nDamage = abilityTC:GetSpecialValueInt("damage");
+  local nDamage = ability:GetSpecialValueInt("damage");
 
   --------------------------------------
   -- Mode based usage
   --------------------------------------
-
-  -- If we're seriously retreating, see if we can land a stun on someone who's damaged us recently
-  if mutil.IsRetreating(npcBot)
-  then
-    local tableNearbyEnemyHeroes = npcBot:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
-    for _,npcEnemy in pairs( tableNearbyEnemyHeroes )
-    do
-      if ( npcBot:WasRecentlyDamagedByHero( npcEnemy, 2.0 ) and mutil.CanCastOnNonMagicImmune(npcEnemy)  )
-      then
-        return BOT_ACTION_DESIRE_MODERATE;
-      end
-    end
-  end
-
-  if ( npcBot:GetActiveMode() == BOT_MODE_ROSHAN  )
-  then
-    local npcTarget = npcBot:GetAttackTarget();
-    if ( mutil.IsRoshan(npcTarget) and mutil.CanCastOnMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, npcBot, nRadius)  )
-    then
-      return BOT_ACTION_DESIRE_LOW;
-    end
-  end
-
-  -- If we're farming and can kill 3+ creeps with LSA
-  if mutil.IsPushing(npcBot)
-  then
-    local tableNearbyEnemyCreeps = npcBot:GetNearbyLaneCreeps( nRadius, true );
-    if ( tableNearbyEnemyCreeps ~= nil and #tableNearbyEnemyCreeps >= 4 and  npcBot:GetMana()/npcBot:GetMaxMana() > 0.6 ) then
-      return BOT_ACTION_DESIRE_LOW;
-    end
-  end
 
   -- If we're going after someone
   if mutil.IsGoingOnSomeone(npcBot)

@@ -162,7 +162,7 @@ function GameMode:OnPreGame()
 
   SetTeamCustomHealthbarColor(2, 61, 210, 150)
   SetTeamCustomHealthbarColor(3, 243, 201, 9)
-  
+
   CheckCheatMode()
 end
 

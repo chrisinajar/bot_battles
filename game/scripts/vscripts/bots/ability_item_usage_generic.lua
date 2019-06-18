@@ -101,10 +101,20 @@ function AbilityUsageThink()
   end
 
   local bot = GetBot()
+  if mutil.CanNotUseAbility(bot) then return end
+
+  if bot:IsChanneling() or bot:IsUsingAbility() or bot:IsInvisible() or bot:IsMuted( ) or bot:HasModifier("modifier_doom_bringer_doom") then
+    return;
+  end
+
   mutil.IsGoingOnSomeone(bot) -- setup targets if needed
   local name = bot:GetUnitName()
   local shortName = name:sub(15, -1)
+  if shortName == "sand_king" then
+    shortName = "sandking"
+  end
   local enemies = bot:GetNearbyHeroes(1600, true, BOT_MODE_NONE )
+  local allies = bot:GetNearbyHeroes(1600, false, BOT_MODE_NONE )
   local enemy = bot:GetTarget()
   local didAct = false
   local couldAct = false
@@ -118,19 +128,36 @@ function AbilityUsageThink()
 
   for abilityIndex = 0, 8 do
     local ability = bot:GetAbilityInSlot(abilityIndex)
-    if not didAct and ability then
+    local target = enemy
+    if bit.band(ability:GetTargetTeam(), 3) == 1 then
+      target = allies[RandomInt(1, #allies)]
+    end
+
+    if not didAct and ability and ability:GetName():sub(-4) ~= "aura" then
       local abilityName = ability:GetName()
       if not ability:IsHidden() and not ability:IsPassive() and not ability:IsTalent() and ability:IsFullyCastable() and ability:GetName():sub(0, #shortName) == shortName then
         local modifier = Data[abilityName]
         local behave = ability:GetBehavior()
+        local targetFlags = ability:GetTargetType()
         if modifier ~= false then
           modifier = modifier or "none"
-          if ability:GetCastRange() == 0 and bit.band(behave, 4) == 4 and not bot:HasModifier(modifier) then
-            CheckAndUseAbility(ability, modifier, nil, true)
-          end
-          if enemy then
-            print(ability:GetName() .. ' ' .. ability:GetCastRange() .. ability:GetTargetTeam())
-            didAct, couldAct = CheckAndUseAbility(ability, modifier, enemy, true)
+          if not bot:HasModifier(modifier) and bit.band(behave, 4) == 4 then
+            local shouldCast, isAOE = ConsiderAOERadiusAbility(bot, ability)
+            if shouldCast > 0 then
+              print('Casting AOE ability ' .. ability:GetName() .. ' / ' .. tostring(ability:GetToggleState()))
+              didAct, couldAct = CheckAndUseAbility(ability, modifier, nil, true)
+            elseif not isAOE then
+              didAct, couldAct = CheckAndUseAbility(ability, modifier, nil, true)
+            end
+          elseif bit.band(targetFlags, 64) == 64 then
+            -- this ability targets trees
+            local trees = bot:GetNearbyTrees(600)
+            if #trees > 0 then
+              didAct = true
+              bot:Action_UseAbilityOnTree(ability, trees[1])
+            end
+          elseif target then
+            didAct, couldAct = CheckAndUseAbility(ability, modifier, target, true)
           end
         end
       end
@@ -141,14 +168,17 @@ function AbilityUsageThink()
     -- last, change targets
     local targets = bot:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
     if #targets < 1 then
-      return
+      return didAct, couldAct
     end
     local newTarget = targets[RandomInt(1, #targets)]
     bot:SetTarget(newTarget)
   end
 
-  bot:Action_ClearActions(false)
-  bot:ActionQueue_AttackUnit(enemy, true)
+  -- if not didAct and bot:IsIdle() then
+  --   bot:Action_ClearActions(false)
+  --   bot:ActionQueue_AttackUnit(enemy, true)
+  -- end
+  return didAct, couldAct
 end
 
 function PrintCourierState(state)
@@ -500,7 +530,7 @@ function UnImplementedItemUsage()
   if bst ~= nil and bst:IsFullyCastable() then
     if  mode == BOT_MODE_RETREAT and
       bot:GetActiveModeDesire() >= BOT_MODE_DESIRE_HIGH and
-      ( bot:GetHealth() / bot:GetMaxHealth() ) < 0.10 - ( bot:GetLevel() / 500 )
+      ( bot:GetHealth() / bot:GetMaxHealth() ) < 0.30 - ( bot:GetLevel() / 500 )
     then
       bot:Action_UseAbilityOnLocation(bst, bot:GetLocation());
       return;
@@ -653,7 +683,11 @@ function UnImplementedItemUsage()
   then
     if  not bot:HasModifier('modifier_item_lotus_orb_active')
       and not bot:IsMagicImmune()
-      and ( bot:IsSilenced() or ( tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes > 0 and bot:GetHealth()/bot:GetMaxHealth() < 0.35 + (0.05*#tableNearbyEnemyHeroes) ) )
+      and (
+        bot:IsSilenced()
+        or ( tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes > 0 and bot:GetHealth()/bot:GetMaxHealth() < 0.35 + (0.05*#tableNearbyEnemyHeroes) )
+        or HasLotusableProjectile(bot)
+      )
       then
       bot:Action_UseAbilityOnEntity(lotus,bot);
       return;
@@ -666,9 +700,10 @@ function UnImplementedItemUsage()
     for _,Ally in pairs(Allies) do
       if  not Ally:HasModifier('modifier_item_lotus_orb_active')
         and not Ally:IsMagicImmune()
-        and Ally:WasRecentlyDamagedByAnyHero(2.0)
-          and (( Ally:GetHealth()/Ally:GetMaxHealth() < 0.35 and tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes > 0 )  or
-        IsDisabled(Ally))
+        and (
+          Ally:IsSilenced()
+          or HasLotusableProjectile(Ally)
+        )
       then
         bot:Action_UseAbilityOnEntity(lotus,Ally);
         return;
@@ -714,7 +749,7 @@ function UnImplementedItemUsage()
       if not Ally:HasModifier('modifier_item_glimmer_cape')
          and not Ally:IsMagicImmune()
          and Ally:WasRecentlyDamagedByAnyHero(2.0)
-         and (( Ally:GetHealth()/Ally:GetMaxHealth() < 0.35 and tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes > 0 ) or IsDisabled(Ally))
+         and (( Ally:GetHealth()/Ally:GetMaxHealth() < 0.35 and tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes > 0 ) or IsDisabled(Ally) or Ally:IsChanneling())
       then
         bot:Action_UseAbilityOnEntity(glimer,Ally);
         return;
@@ -838,6 +873,17 @@ function UnImplementedItemUsage()
     end
   end
 
+  local bkb = IsItemAvailable("item_black_king_bar");
+  if bkb then
+    if bot:IsSilenced()
+      or (npcTarget and npcTarget:IsAlive() and mutil.IsInRange(npcTarget, bot, bot:GetAttackRange() + 200))
+    then
+      if not bot:IsMagicImmune() and bkb:IsFullyCastable() then
+        CastAbility(bkb, nil)
+      end
+    end
+  end
+
   local itemTable = {
     item_heavens_halberd = "modifier_heavens_halberd_debuff",
     item_nullifier = "modifier_item_nullifier_mute",
@@ -871,6 +917,18 @@ function UnImplementedItemUsage()
   end
 end
 
+function HasLotusableProjectile (bot)
+  local incProj = bot:GetIncomingTrackingProjectiles()
+  for _,proj in ipairs(incProj) do
+    if not proj.is_attack then
+      if GetUnitToLocationDistance(bot, proj.location) < 200 then
+        return true
+      end
+    end
+  end
+  return false
+end
+
 function CastAbility (ability, npcTarget)
   local behave = ability:GetBehavior()
   if bit.band(behave, 8) == 8 and npcTarget ~= nil then
@@ -879,7 +937,7 @@ function CastAbility (ability, npcTarget)
     return
   end
   if bit.band(behave, 16) == 16 and npcTarget ~= nil then
-    print('Casting ' .. ability:GetName() .. ' by location')
+    print('Casting ' .. ability:GetName() .. ' by location ' .. tostring(npcTarget:GetLocation()))
     bot:Action_UseAbilityOnLocation(ability, npcTarget:GetLocation());
     return
   end
@@ -996,6 +1054,63 @@ function ThinkAboutMindControl (ability, modifier)
 
   bot:Action_UseAbilityOnEntity(ability, NCreep);
   return true
+end
+
+function ConsiderAOERadiusAbility(unit, ability, nRadius)
+  local isToggle = bit.band(ability:GetBehavior(), 512) == 512
+  local desireNone = BOT_ACTION_DESIRE_NONE
+  local desireHigh = BOT_ACTION_DESIRE_HIGH
+  local abilityName = ability:GetName()
+
+  -- print(ability:GetName() .. ' . ' .. tostring(isToggle) .. ' / ' .. tostring(ability:GetToggleState()))
+
+
+  if not nRadius then
+    nRadius = math.max(ability:GetCastRange(), ability:GetSpecialValueInt( "radius" ))
+  end
+
+  if unit:HasScepter() then
+    local scepterRadius = ability:GetSpecialValueInt( "radius_scepter" )
+    nRadius = math.max(scepterRadius, nRadius)
+  end
+
+  if nRadius < 1 then
+    local shortName = abilityName:sub(abilityName:find('_') + 1, -1)
+    nRadius = ability:GetSpecialValueInt( shortName .. "_radius" )
+  end
+
+  local isAOE = nRadius > 0
+
+  if isToggle and ability:GetToggleState() then
+    nRadius = nRadius + 100
+    desireHigh = BOT_ACTION_DESIRE_NONE
+    desireNone = BOT_ACTION_DESIRE_HIGH
+  end
+
+  -- Make sure it's castable
+  if (not ability or not ability:IsFullyCastable() or ability:IsHidden()) then
+    return BOT_ACTION_DESIRE_NONE, isAOE;
+  end
+
+  local tableAllNearbyEnemyHeroes = unit:GetNearbyHeroes( nRadius, true, BOT_MODE_NONE );
+  local tableNearbyEnemyHeroes = {}
+
+  if Data[ability:GetName()] then
+    local modifier = Data[ability:GetName()]
+    for _,unit in ipairs(tableAllNearbyEnemyHeroes) do
+      if not unit:HasModifier(modifier) then
+        table.insert(tableNearbyEnemyHeroes, unit)
+      end
+    end
+  else
+    tableNearbyEnemyHeroes = tableAllNearbyEnemyHeroes
+  end
+
+  if ( tableNearbyEnemyHeroes ~= nil and #tableNearbyEnemyHeroes >= 1 ) then
+    return desireHigh, isAOE;
+  end
+
+  return desireNone, isAOE;
 end
 
 return MyModule;

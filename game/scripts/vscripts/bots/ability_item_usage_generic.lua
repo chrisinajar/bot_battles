@@ -101,7 +101,11 @@ function AbilityUsageThink()
   end
 
   local bot = GetBot()
-  if mutil.CanNotUseAbility(bot) then return end
+  if mutil.CanNotUseAbility(bot) then
+    bot:Action_ClearActions(false)
+    bot:Action_AttackMove(enemy:GetAbsOrigin())
+    return
+  end
 
   if bot:IsChanneling() or bot:IsUsingAbility() or bot:IsInvisible() or bot:IsMuted( ) or bot:HasModifier("modifier_doom_bringer_doom") then
     return;
@@ -118,7 +122,7 @@ function AbilityUsageThink()
   local enemy = bot:GetTarget()
   local didAct = false
   local couldAct = false
-  if not enemy then
+  if not enemy or not enemy:IsAlive() then
     enemy = enemies[1]
   end
 
@@ -164,7 +168,13 @@ function AbilityUsageThink()
     end
   end
 
-  if couldAct then
+
+  -- if not didAct and bot:IsIdle() and not bot:IsChanneling() and not bot:IsUsingAbility() then
+    bot:Action_ClearActions(false)
+    bot:Action_AttackMove(enemy:GetAbsOrigin())
+  -- end
+
+  if couldAct or not enemy then
     -- last, change targets
     local targets = bot:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
     if #targets < 1 then
@@ -174,10 +184,6 @@ function AbilityUsageThink()
     bot:SetTarget(newTarget)
   end
 
-  -- if not didAct and bot:IsIdle() then
-  --   bot:Action_ClearActions(false)
-  --   bot:ActionQueue_AttackUnit(enemy, true)
-  -- end
   return didAct, couldAct
 end
 
@@ -959,7 +965,15 @@ function CheckAndUseAbility (ability, modifier, npcTarget, castThroughStuns)
         CastAbility(ability, nil)
         return true, false;
       end
-      if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, bot, ability:GetCastRange())
+      local castRange = ability:GetCastRange()
+      local abilityName = ability:GetName()
+
+      if castRange < 1 then
+        local shortName = abilityName:sub(abilityName:find('_') + 1, -1)
+        castRange = ability:GetSpecialValueInt( shortName .. "_range" )
+      end
+
+      if mutil.IsValidTarget(npcTarget) and mutil.CanCastOnNonMagicImmune(npcTarget) and mutil.IsInRange(npcTarget, bot, castRange)
          and not npcTarget:HasModifier(modifier)
       then
         if not castThroughStuns and IsDisabled(npcTarget) then

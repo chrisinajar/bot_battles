@@ -144,14 +144,15 @@ function BotController:InitBot (hero, team)
     if not hero or hero:IsNull() then
       return
     end
-    if not hero:IsIdle() then
+    if hero:IsMoving() then
+      hero:MoveToPositionAggressive( self.locations.center + RandomVector(RandomFloat(200, 600)))
+      return 1
+    end
+    if not hero:IsIdle() or hero:IsChanneling() then
       return 1
     end
     hero:MoveToPositionAggressive( self.locations.center + RandomVector(RandomFloat(200, 600)))
-    if (hero:GetAbsOrigin() - self.locations[team]):Length2D() < 1500 then
-      return 1
-    end
-    return 5
+    return 1
   end)
 end
 

@@ -101,7 +101,13 @@ function AbilityUsageThink()
   end
 
   local bot = GetBot()
-  if mutil.CanNotUseAbility(bot) then
+  local enemies = bot:GetNearbyHeroes(1600, true, BOT_MODE_NONE )
+  local enemy = bot:GetTarget()
+  if not enemy or not enemy:IsAlive() then
+    enemy = enemies[1]
+  end
+
+  if mutil.CanNotUseAbility(bot) and enemy then
     bot:Action_ClearActions(false)
     bot:Action_AttackMove(enemy:GetAbsOrigin())
     return
@@ -117,14 +123,9 @@ function AbilityUsageThink()
   if shortName == "sand_king" then
     shortName = "sandking"
   end
-  local enemies = bot:GetNearbyHeroes(1600, true, BOT_MODE_NONE )
   local allies = bot:GetNearbyHeroes(1600, false, BOT_MODE_NONE )
-  local enemy = bot:GetTarget()
   local didAct = false
   local couldAct = false
-  if not enemy or not enemy:IsAlive() then
-    enemy = enemies[1]
-  end
 
   if #enemies == 0 then
     return
@@ -169,10 +170,10 @@ function AbilityUsageThink()
   end
 
 
-  -- if not didAct and bot:IsIdle() and not bot:IsChanneling() and not bot:IsUsingAbility() then
+  if enemy and not didAct and not bot:IsChanneling() and not bot:IsUsingAbility() then
     bot:Action_ClearActions(false)
     bot:Action_AttackMove(enemy:GetAbsOrigin())
-  -- end
+  end
 
   if couldAct or not enemy then
     -- last, change targets
